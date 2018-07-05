@@ -1,4 +1,5 @@
 #!/bin/R
+# Author: Giovanni Marques de Castro
 library(seqinr)
 library(parallel)
 library(doMC)
