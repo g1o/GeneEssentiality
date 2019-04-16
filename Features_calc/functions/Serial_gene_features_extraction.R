@@ -111,19 +111,18 @@ MI<-sapply (names(f2) , function(dinucleotide) f2[dinucleotide]*log2(f2[dinucleo
 
 #Pfam--- Uses external HMMSCAN and perl. Needs pfam database located in the working dir     ↓
 	hmmCMD<-sprintf("perl -e \"while(<>){print '>1\n';print } \" -| hmmscan --acc --noali %s - |\
-	        grep -Po '>> PF\\S+'|sed 's/>> //'", PFAM_PATH)
-	PFAM<-system(hmmCMD,input=paste(longest_orf,collapse=''),intern=T) 
+	        grep -Po '>> PF\\S+'|sed 's/>> //'", PFAM_PATH) #build command
+	PFAM<-system(hmmCMD,input=paste(longest_orf,collapse=''),intern=T)  #execute command inputing amino acid sequence from longest_orf
 
 	names(PFAM)<-PFAM;
 	PFAMa <- ifelse(grepl(".", PFAM), T, F)
+#	Put inside the binary vector
 	names(PFAMa)<-names(PFAM)
 
-#	Put inside the binary vector
-
-	Features<-c(SomaMI,MI,SomaCMI,CMI,H2,H3,pH2,pH3,pSomaCMI,pepFeatures,aalength,ProtMI,SomaProtMI,PseAA,CTriad) # numeric vectors
+# numeric vectors
+	Features<-c(SomaMI,MI,SomaCMI,CMI,H2,H3,pH2,pH3,pSomaCMI,pepFeatures,aalength,ProtMI,SomaProtMI,PseAA,CTriad)
 	Features[is.na(Features)] <- 0 
 	Features<-data.frame(t(Features),t(PFAMa)) #join with binary vector in a data.frame as they have different types
-#	Features<-data.frame(t(c(SomaMI,MI,SomaCMI,CMI,H2,H3,pH2,pH3,pepFeatures,aalength,ProtMI,SomaProtMI,PseAA)),t(PFAMa))
 	row.names(Features)<-getName(seq)
                         
 #	fe.time <- Sys.time() #timing code
