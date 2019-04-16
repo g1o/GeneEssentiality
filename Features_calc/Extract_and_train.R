@@ -11,8 +11,8 @@ OMEGA=0.05;
 CPU=50
 
 source("functions/Serial_gene_features_calcs.R",echo=T)
-ESSENTIAL_GENES_PATH<-("GE_train-ZeroCrispr.fasta")
-NONESSENTIAL_GENES_PATH<-("GNE_train-ZeroCrispr.fasta")
+ESSENTIAL_GENES_PATH<-("GE_train-ZeroCrispr.fasta") #CDS
+NONESSENTIAL_GENES_PATH<-("GNE_train-ZeroCrispr.fasta") #CDS
 
 GE<-read.fasta(ESSENTIAL_GENES_PATH)
 GNE<-read.fasta(NONESSENTIAL_GENES_PATH)
