@@ -13,8 +13,8 @@ CPU=20
 
 source("functions/Serial_gene_features_extraction.R",echo=T)
 PFAM_path="dbs/PFAM/Pfam-A.hmm";
-ESSENTIAL_GENES_PATH<-("GE-cds.fasta") #CDS
-NONESSENTIAL_GENES_PATH<-("GNE-cds.fasta") #CDS
+ESSENTIAL_GENES_PATH<-("../data/drosophila/GE.fasta") #CDS
+NONESSENTIAL_GENES_PATH<-("../data/drosophila/GNE.fasta") #CDS
 
 
 GE<-read.fasta(ESSENTIAL_GENES_PATH)
