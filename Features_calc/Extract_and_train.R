@@ -6,28 +6,31 @@ library(doMC)
 library(pROC)
 library(caret)
 library(protr)
+#HMMSCAN and PFAM are needed in Calc_feats
 LAMBDA=50; #If sequence length is less than LAMBDA, then it will be skipped; 
 OMEGA=0.05;
-CPU=50
+CPU=20
 
-source("functions/Serial_gene_features_calcs.R",echo=T)
-ESSENTIAL_GENES_PATH<-("GE_train-ZeroCrispr.fasta") #CDS
-NONESSENTIAL_GENES_PATH<-("GNE_train-ZeroCrispr.fasta") #CDS
+source("functions/Serial_gene_features_extraction.R",echo=T)
+PFAM_path="dbs/PFAM/Pfam-A.hmm";
+ESSENTIAL_GENES_PATH<-("GE-cds.fasta") #CDS
+NONESSENTIAL_GENES_PATH<-("GNE-cds.fasta") #CDS
+
 
 GE<-read.fasta(ESSENTIAL_GENES_PATH)
 GNE<-read.fasta(NONESSENTIAL_GENES_PATH)
-
 GNE["FBgn0013675"]<-NULL # removing as it is mitochondrial and it has another genetic code, it is the only mito gene here. 
 start.time <- Sys.time() #timing code
 
 cl<-makeCluster(CPU,type="FORK")
 
-Features_essential<-rbind.fill(parSapply(cl,GE,function(gene) Calc_feats(gene,LAMBDA,OMEGA)))
+#Features_essential<-rbind.fill(parSapply(cl,GE,function(gene) Calc_feats(gene,LAMBDA=LAMBDA,OMEGA=OMEGA)))
+Features_essential<-rbind.fill(sapply(GE,function(gene) Calc_feats(gene,PFAM_PATH=PFAM_path,LAMBDA=LAMBDA,OMEGA=OMEGA)))
 rownames(Features_essential)<-getName(GE)
 Features_essential[is.na(Features_essential)] <- F #binnary NA to False
 Features_essential<- data.frame(Features_essential,Class="E")
 
-Features_notessential<-rbind.fill(parSapply(cl,GNE,function(gene) Calc_feats(gene,LAMBDA,OMEGA)))
+Features_notessential<-rbind.fill(parSapply(cl,GNE,function(gene) Calc_feats(gene,PFAM_PATH=PFAM_path,LAMBDA=LAMBDA,OMEGA=OMEGA)))
 rownames(Features_notessential)<-getName(GNE)
 Features_notessential[is.na(Features_notessential)] <- F
 Features_notessential<-data.frame(Features_notessential,Class="NE")
@@ -69,7 +72,7 @@ for (CV in c(10)) {
 
 namet<-format(Sys.time(),"Drosophila_MODELS.%d_%H-%M-%S.RData")
 save(modellist,file=namet)
-source("Read_and_process_Test_set.R")
+#source("Read_and_process_Test_set.R") #
 
-res<-predict(modellist[[1]],Crispr_set,type="prob");result.roc.crispr<-roc(Crispr_set$Class,res$E)
-res<-predict(modellist[[1]],Tribolium_set,type="prob");result.roc.tribolium<-roc(Tribolium_set$Class,res$E)
+#res<-predict(modellist[[1]],Crispr_set,type="prob");result.roc.crispr<-roc(Crispr_set$Class,res$E)
+#res<-predict(modellist[[1]],Tribolium_set,type="prob");result.roc.tribolium<-roc(Tribolium_set$Class,res$E)
