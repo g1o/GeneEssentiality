@@ -25,7 +25,7 @@ start.time <- Sys.time() #timing code
 cl<-makeCluster(CPU,type="FORK")
 
 #Features_essential<-rbind.fill(parSapply(cl,GE,function(gene) Calc_feats(gene,LAMBDA=LAMBDA,OMEGA=OMEGA)))
-Features_essential<-rbind.fill(sapply(GE,function(gene) Calc_feats(gene,PFAM_PATH=PFAM_path,LAMBDA=LAMBDA,OMEGA=OMEGA)))
+Features_essential<-rbind.fill(parSapply(cl,GE,function(gene) Calc_feats(gene,PFAM_PATH=PFAM_path,LAMBDA=LAMBDA,OMEGA=OMEGA)))
 rownames(Features_essential)<-getName(GE)
 Features_essential[is.na(Features_essential)] <- F #binnary NA to False
 Features_essential<- data.frame(Features_essential,Class="E")
