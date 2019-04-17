@@ -12,7 +12,7 @@ OMEGA=0.05;
 CPU=20
 
 source("functions/Serial_gene_features_extraction.R",echo=T)
-PFAM_path="dbs/PFAM/Pfam-A.hmm";
+PFAM_path="/mnt/Databases/PFAM/Pfam-A.hmm"; #change the path to your hmmpressed pfam database
 ESSENTIAL_GENES_PATH<-("../data/drosophila/GE.fasta") #CDS
 NONESSENTIAL_GENES_PATH<-("../data/drosophila/GNE.fasta") #CDS
 
@@ -45,7 +45,6 @@ time.taken
 Complete_set<-rbind.fill(Features_essential,Features_notessential)
 Complete_set[is.na(Complete_set)] <- F
 
-train<-Complete_set[-sampleindex,];
 train<-Complete_set;
 tunegrid  <- expand.grid(.mtry = round(sqrt(length(train))) )
 
