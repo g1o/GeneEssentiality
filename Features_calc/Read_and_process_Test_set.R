@@ -18,8 +18,8 @@ OMEGA=0.05;#set like the training data in model
 source("functions/Serial_gene_features_extraction.R",echo=T)
 
 cl<-makeCluster(6,type="FORK")
-fcGE <-rbind.fill(parSapply(cl,ge_cripr ,function (x) Calc_feats(x,LAMBDA,OMEGA)))
-fcGNE<-rbind.fill(parSapply(cl,gne_cripr,function (x) Calc_feats(x,LAMBDA,OMEGA)))
+fcGE <-rbind.fill(parSapply(cl,ge_cripr ,function (x) Calc_feats(x,LAMBDA=LAMBDA,OMEGA=OMEGA)))
+fcGNE<-rbind.fill(parSapply(cl,gne_cripr,function (x) Calc_feats(x,LAMBDA=LAMBDA,OMEGA=OMEGA)))
 
 fcGE<- data.frame(fcGE,Class="E")   #Set when outcome is known
 fcGNE<- data.frame(fcGNE,Class="NE")#Set when outcome is known
@@ -42,8 +42,8 @@ result.roc.crispr<-roc(Crispr_set$Class,res$E)
 
 
 #cl<-makeCluster(6,type="FORK")
-#fcGE_Tc <-rbind.fill(parSapply(cl,TcGE ,function (x) Calc_feats(x,LAMBDA,OMEGA))) #tribolium Features Calc
-#fcGNE_Tc<-rbind.fill(parSapply(cl,TcGNE,function (x) Calc_feats(x,LAMBDA,OMEGA)))
+#fcGE_Tc <-rbind.fill(parSapply(cl,TcGE ,function (x) Calc_feats(x,LAMBDA=LAMBDA,OMEGA=OMEGA))) #tribolium Features Calc
+#fcGNE_Tc<-rbind.fill(parSapply(cl,TcGNE,function (x) Calc_feats(x,LAMBDA=LAMBDA,OMEGA=OMEGA)))
 ## 
 #fcGE_Tc<- data.frame(fcGE_Tc,Class="E")  #Set when outcome is known
 #fcGNE_Tc<- data.frame(fcGNE_Tc,Class="NE")#Set when outcome is known
