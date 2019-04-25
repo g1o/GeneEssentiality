@@ -37,6 +37,9 @@ Crispr_set[,nte]<-NULL
 Crispr_set[,ntr]<-FALSE
 Crispr_set[is.na(Crispr_set)] <- F
 
+res<-predict(modellist[[1]],Crispr_set,type="prob");
+result.roc.crispr<-roc(Crispr_set$Class,res$E)
+
 
 #cl<-makeCluster(6,type="FORK")
 #fcGE_Tc <-rbind.fill(parSapply(cl,TcGE ,function (x) Calc_feats(x,LAMBDA,OMEGA))) #tribolium Features Calc

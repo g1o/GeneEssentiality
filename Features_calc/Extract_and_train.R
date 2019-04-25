@@ -68,7 +68,7 @@ for (CV in c(10)) {
 }
 }
 
-namet<-format(Sys.time(),"Drosophila_MODELS.%d_%H-%M-%S.RData")
+namet<-format(Sys.time(),"MODELS.%d_%H-%M-%S.RData")
 save(modellist,file=namet)
 #source("Read_and_process_Test_set.R") #
 
