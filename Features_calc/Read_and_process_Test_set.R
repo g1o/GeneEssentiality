@@ -15,7 +15,7 @@ gne_cripr<-read.fasta("../data/drosophila/GNE.fasta")
 
 LAMBDA=length(grep( "Xc2.lambda" , colnames( modellist[[1]]$trainingData ))); #set like the training data in model
 OMEGA=0.05;#set like the training data in model
-source("functions/Serial_gene_features_calcs.R",echo=T)
+source("functions/Serial_gene_features_extraction.R",echo=T)
 
 cl<-makeCluster(6,type="FORK")
 fcGE <-rbind.fill(parSapply(cl,ge_cripr ,function (x) Calc_feats(x,LAMBDA,OMEGA)))
