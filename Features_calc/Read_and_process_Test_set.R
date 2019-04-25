@@ -6,7 +6,9 @@ library(doMC)
 library(pROC)
 library(caret)
 library(protr)
+
 load("nicemodels_ntree250_07AUC.RData") # LOAD TRAINED MODELS list # need to be changed
+PFAM_path="/mnt/Databases/PFAM/Pfam-A.hmm"; #change the path to your hmmpressed pfam database
 ge_cripr<-read.fasta("../data/drosophila/GE.fasta")
 gne_cripr<-read.fasta("../data/drosophila/GNE.fasta")
 
@@ -18,8 +20,8 @@ OMEGA=0.05;#set like the training data in model
 source("functions/Serial_gene_features_extraction.R",echo=T)
 
 cl<-makeCluster(6,type="FORK")
-fcGE <-rbind.fill(parSapply(cl,ge_cripr ,function (x) Calc_feats(x,LAMBDA=LAMBDA,OMEGA=OMEGA)))
-fcGNE<-rbind.fill(parSapply(cl,gne_cripr,function (x) Calc_feats(x,LAMBDA=LAMBDA,OMEGA=OMEGA)))
+fcGE <-rbind.fill(parSapply(cl,ge_cripr ,function (x) Calc_feats(x,PFAM_PATH=PFAM_path,LAMBDA=LAMBDA,OMEGA=OMEGA)))
+fcGNE<-rbind.fill(parSapply(cl,gne_cripr,function (x) Calc_feats(x,PFAM_PATH=PFAM_path,LAMBDA=LAMBDA,OMEGA=OMEGA)))
 
 fcGE<- data.frame(fcGE,Class="E")   #Set when outcome is known
 fcGNE<- data.frame(fcGNE,Class="NE")#Set when outcome is known

@@ -1,6 +1,6 @@
 #protein features not working well with another genetic code
 #just tested in protein coding regions and the standard genetic code (ncbi 1).
-Calc_feats<-function(seq,PFAM_PATH="/home/giovannimc/genomas_and_databases/PFAM/Pfam-A.hmm",LAMBDA=30,OMEGA=0.05){ #calculates the features of one sequence
+Calc_feats<-function(seq,PFAM_PATH="databases/PFAM/Pfam-A.hmm",LAMBDA=30,OMEGA=0.05){ #calculates the features of one sequence
 #                        fs.time <- Sys.time() #timing code
                         frame0<-translate(seq,frame=0,ambiguous=T)
                         frame1<-translate(seq,frame=1,ambiguous=T)
