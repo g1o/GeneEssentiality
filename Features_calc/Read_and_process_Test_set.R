@@ -7,8 +7,8 @@ library(pROC)
 library(caret)
 library(protr)
 load("nicemodels_ntree250_07AUC.RData") # LOAD TRAINED MODELS list # need to be changed
-ge_cripr<-read.fasta("../drosophila/GE.fasta")
-gne_cripr<-read.fasta("../drosophila/GNE.fasta")
+ge_cripr<-read.fasta("../data/drosophila/GE.fasta")
+gne_cripr<-read.fasta("../data/drosophila/GNE.fasta")
 
 #TcGNE<-read.fasta("Tribolium_NonEssential-less_than0.30lethal_from_ibeetle.fasta")
 #TcGE<-read.fasta("Tribolium_top100_RNAiLethal_FROM_Ulrich2015_allCDSs_from_genes.fasta")
