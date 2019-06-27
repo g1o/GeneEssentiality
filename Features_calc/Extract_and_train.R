@@ -67,7 +67,7 @@ predictionlist <- list()
 registerDoMC(CPU) #--- needed for random forest parallelization
 for (ntree in trees){
 for (CV in c(cross_validation)) {
-	control  <- trainControl(method="repeatedcv", number=CV, repeats=5,classProbs = TRUE,summaryFunction=twoClassSummary)
+	control  <- trainControl(method="repeatedcv", number=CV, repeats=5,classProbs = TRUE,summaryFunction=twoClassSummary,savePredictions = TRUE)
 
 	#TRAIN By maximizing the ROC METRIC
 	fit<-train(Class ~ .,data=train,metric="ROC",method="rf",trControl=control,tuneGrid=tunegrid,prox=T,allowParallel=TRUE,ntree=ntree,importance=T) 
