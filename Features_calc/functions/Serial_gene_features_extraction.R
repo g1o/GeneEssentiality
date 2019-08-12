@@ -52,7 +52,20 @@ Calc_feats<-function(seq,PFAM_PATH="databases/PFAM/Pfam-A.hmm",LAMBDA=30,OMEGA=0
                         f1<-count(seq,1,freq=T)
                         f2<-count(seq,2,freq=T)
                         f3<-count(seq,3,freq=T)
+	
+#Gibbs Entropy and Entalpy from varGibbs
+                        tmp_file<-Sys.getpid();
+                        sequence<-paste(seq,collapse='')
+                        varGibbs_Model_PATH<-c("/usr/share/VarGibbs/data/P-SL98.par")
+                        VarGibbsCMD<-sprintf("vargibbs -seq=%s -ct=1 -o='%s' -calc=prediction -par=%s >/dev/null;
+                                        awk -F' ' -v OFS=';' '{print $10,$13}'  %s.dat | head -n2 ",
+                                        sequence,tmp_file,varGibbs_Model_PATH,tmp_file) #build command
+                        VarGibbs<-system(VarGibbsCMD,intern=T)
+                        Gibbs<-as.numeric((strsplit(VarGibbs,';'))[[2]])
+                        names(Gibbs)<-strsplit(VarGibbs,';')[[1]]
+                        system(paste0('rm ',tmp_file,'*')) # remove tmp files
 
+	
 #Shannon Entropy
                         H2<-sum(-f2*log2(f2),na.rm=T) #shannon entropy for word size 2
                         H3<-sum(-f3*log2(f3),na.rm=T) #shannon entropy for word size 3
@@ -120,7 +133,7 @@ MI<-sapply (names(f2) , function(dinucleotide) f2[dinucleotide]*log2(f2[dinucleo
 	names(PFAMa)<-names(PFAM)
 
 # numeric vectors
-	Features<-c(SomaMI,MI,SomaCMI,CMI,H2,H3,pH2,pH3,pSomaCMI,pepFeatures,aalength,ProtMI,SomaProtMI,PseAA,CTriad)
+	Features<-c(SomaMI,MI,SomaCMI,CMI,H2,H3,Gibbs,pH2,pH3,pSomaCMI,pepFeatures,aalength,ProtMI,SomaProtMI,PseAA,CTriad)
 	Features[is.na(Features)] <- 0 
 	Features<-data.frame(t(Features),t(PFAMa)) #join with binary vector in a data.frame as they have different types
 	row.names(Features)<-getName(seq)
