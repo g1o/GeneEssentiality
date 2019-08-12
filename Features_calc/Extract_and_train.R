@@ -14,7 +14,7 @@ trees=100;#number of trees in rf
 cross_validation=10;
 
 source("functions/Serial_gene_features_extraction.R",echo=T)
-PFAM_path="/mnt/Databases/PFAM/Pfam-A.hmm"; #change the path to your hmmpressed pfam database
+PFAM_path="/home/programs/DATABASES/PFAM/Pfam-A.hmm"; #change the path to your hmmpressed pfam database
 ESSENTIAL_GENES_PATH<-("../data/drosophila/GE.fasta") #CDS
 NONESSENTIAL_GENES_PATH<-("../data/drosophila/GNE.fasta") #CDS
 
