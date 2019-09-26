@@ -2,6 +2,11 @@
 #just tested in protein coding regions and the standard genetic code (ncbi 1).
 Calc_feats<-function(seq,PFAM_PATH="databases/PFAM/Pfam-A.hmm",LAMBDA=30,OMEGA=0.05){ #calculates the features of one sequence
 #                        fs.time <- Sys.time() #timing code
+	if('n' %in% seq ){return();}
+	if(length(seq)<=LAMBDA*3){
+	#	stop("AA length too short: length < LAMBDA"); 	#Can't calculate pseudo aa with it... 
+		return();
+	}
                         frame0<-translate(seq,frame=0,ambiguous=T)
                         frame1<-translate(seq,frame=1,ambiguous=T)
                         frame2<-translate(seq,frame=2,ambiguous=T)
@@ -41,9 +46,9 @@ Calc_feats<-function(seq,PFAM_PATH="databases/PFAM/Pfam-A.hmm",LAMBDA=30,OMEGA=0
 	}
 	#Resolve problems due to a ambiguos base
 	Xaa<-count(longest_orf,1,freq=T,alphabet=s2c("X")) # Check number of surviving ambiguous bases 
-	if(length(Xaa)<2){ #if there are less than 2 ambiguos bases, substitute to a glycine
-		longest_orf[longest_orf=='X'] <- "G" #oversimplification to deal with amiguous that could not be resolved with translate. but avoid completely losing a gene for just one AA. 
-	}else { #more than one ambiguous may be a real problem, remove this sequence
+	if(length(Xaa)>=1){ #if there are ambiguos bases 
+		#longest_orf[longest_orf=='X'] <- "G" #oversimplification to deal with amiguous that could not be resolved with translate. but avoid completely losing a gene for just one AA. 
+	#}else { #more than one ambiguous may be a real problem, remove this sequence
 		return();
 	}
 
