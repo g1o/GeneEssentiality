@@ -147,7 +147,7 @@ MI<-sapply (names(f2) , function(dinucleotide) f2[dinucleotide]*log2(f2[dinucleo
 #        time.taken <- fe.time - fs.time
 #        print(c("Time for features calc=>",time.taken))
         
-	return(list(Features)/home/giovannimc/Downloads)
+	return(list(Features))
 
 }
 
