@@ -120,6 +120,7 @@ MI<-sapply (names(f2) , function(dinucleotide) f2[dinucleotide]*log2(f2[dinucleo
                         pCMI<- sapply (names(f3) , function(trinucl)  f3[trinucl]*log2(f1[substring(trinucl,2,2)]*f3[trinucl]/(f2[substring(trinucl,1,2)]*f2[ substring(trinucl,2,3)])))
                         names(pCMI)<-names(f3)
                         pSomaCMI<-sum(pCMI,na.rm=T)
+			names(pSomaCMI)<-c("pSomaCMI")
 
 
         #Pseudo aminoacid
