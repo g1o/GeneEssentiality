@@ -40,13 +40,10 @@ Calc_feats<-function(seq,PFAM_PATH="databases/PFAM/Pfam-A.hmm",LAMBDA=30,OMEGA=0
 	#peptide length
         aalength<-length(longest_orf)
         names(aalength)<-c("aalength")
-	if(aalength<=LAMBDA){
-	#	stop("AA length too short: length < LAMBDA"); 	#Can't calculate pseudo aa with it... 
-		return();
-	}
+	
 	#Resolve problems due to a ambiguos base
-	Xaa<-count(longest_orf,1,freq=T,alphabet=s2c("X")) # Check number of surviving ambiguous bases 
-	if(length(Xaa)>=1){ #if there are ambiguos bases 
+	Xaa<-count(longest_orf,1,freq=F,alphabet=s2c("X")) # Check number of surviving ambiguous bases 
+	if(Xaa>=1){ #if there are ambiguos bases 
 		#longest_orf[longest_orf=='X'] <- "G" #oversimplification to deal with amiguous that could not be resolved with translate. but avoid completely losing a gene for just one AA. 
 	#}else { #more than one ambiguous may be a real problem, remove this sequence
 		return();
@@ -148,7 +145,7 @@ MI<-sapply (names(f2) , function(dinucleotide) f2[dinucleotide]*log2(f2[dinucleo
 #        time.taken <- fe.time - fs.time
 #        print(c("Time for features calc=>",time.taken))
         
-	return(list(Features))
+	return(Features)
 
 }
 
