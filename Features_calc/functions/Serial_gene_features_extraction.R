@@ -40,7 +40,10 @@ Calc_feats<-function(seq,PFAM_PATH="databases/PFAM/Pfam-A.hmm",LAMBDA=30,OMEGA=0
 	#peptide length
         aalength<-length(longest_orf)
         names(aalength)<-c("aalength")
-	
+	if(aalength<=LAMBDA){
+	#	stop("AA length too short: length < LAMBDA"); 	#Can't calculate pseudo aa with it... 
+		return();
+	}
 	#Resolve problems due to a ambiguos base
 	Xaa<-count(longest_orf,1,freq=F,alphabet=s2c("X")) # Check number of surviving ambiguous bases 
 	if(Xaa>=1){ #if there are ambiguos bases 
