@@ -32,7 +32,7 @@ Features_essential<-as.data.frame(rbindlist(
                     fill=T,idcol=T))
 
 rownames(Features_essential)<-t(Features_essential[,1])
-Features_essential<-Features_essential[,-1]
+
 Features_essential[is.na(Features_essential)] <- F #binnary NA to False
 Features_essential<- data.frame(Features_essential,Class="E")
 
@@ -42,7 +42,7 @@ Features_notessential<-as.data.frame(rbindlist(
                        fill=T,idcol=T))
 
 rownames(Features_notessential)<-t(Features_notessential[,1])
-Features_notessential<-Features_notessential[,-1]
+
 Features_notessential[is.na(Features_notessential)] <- F
 Features_notessential<-data.frame(Features_notessential,Class="NE")
 
@@ -53,8 +53,9 @@ time.taken
 #-------------------------------------------------
 
 Complete_set<-rbindlist(list(Features_essential,Features_notessential),fill=T,idcol=T)
-rownames(Complete_set)<-t(Complete_set[,1])
-Complete_set<-Complete_set[,-1]
+Complete_set<-as.data.frame(Complete_set)
+rownames(Complete_set)<-t(Complete_set[,2])
+Complete_set<-Complete_set[,-c(1,2)]
 Complete_set[is.na(Complete_set)] <- F
 
 train<-Complete_set;
