@@ -10,7 +10,7 @@ library(protr)
 LAMBDA=50; #If sequence length is less than LAMBDA, then it will be skipped; 
 OMEGA=0.05;
 CPU=20;
-trees=100;#number of trees in rf
+trees=750;#number of trees in rf
 cross_validation=10;
 
 source("functions/Serial_gene_features_extraction.R",echo=T)
@@ -83,7 +83,7 @@ for (CV in c(cross_validation)) {
 }
 }
 
-namet<-format(Sys.time(),"MODELS.%d_%H-%M-%S.RData")
+namet<-format(Sys.time(),"MODELS.%d_%b_%Y_%X.RData")
 save(modellist,file=namet)
 #source("Read_and_process_Test_set.R") #
 
