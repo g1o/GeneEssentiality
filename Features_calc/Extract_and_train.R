@@ -88,7 +88,9 @@ for (CV in c(cross_validation)) {
 
 namet<-format(Sys.time(),"MODELS.%d_%b_%Y_%X.RData")
 save(modellist,file=namet)
-#source("Read_and_process_Test_set.R") #
+				     
+anot<-paste0('\n',paste0(label[1,1:2],collapse=" AUC="),'\n',paste0(label[2,1:2],collapse=" AUC="),'\n',paste0(label[3,1:2],collapse=" AUC="),'\n',paste0(label[4,1:2],collapse=" AUC="),'\n')				     
 
-#res<-predict(modellist[[1]],Crispr_set,type="prob");result.roc.crispr<-roc(Crispr_set$Class,res$E)
-#res<-predict(modellist[[1]],Tribolium_set,type="prob");result.roc.tribolium<-roc(Tribolium_set$Class,res$E)
+graphic<-ggplot(modellist[[1]]$pred,aes(m = NE, d = obs, color=factor(mtry))) + geom_roc(n.cut=0) + style_roc(theme=theme_classic,ylab="Sensibilidade (Taxa de verdadeiros positivos)",xlab="Taxa de falsos positivos (Especificidade - 1)") + annotate(geom="text",x = 0.7, y = 0.2, label=c(anot))+ geom_abline(intercept=0, slope=1, colour="orange") 
+pdf("ROC.pdf");
+graphic;dev.off()
