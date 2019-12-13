@@ -139,7 +139,7 @@ MI<-sapply (names(f2) , function(dinucleotide) f2[dinucleotide]*log2(f2[dinucleo
 	names(PFAMa)<-names(PFAM)
 
 # numeric vectors
-	Features<-c(SomaMI,MI,SomaCMI,CMI,H2,H3,Gibbs,pH2,pH3,pSomaCMI,pepFeatures,aalength,ProtMI,SomaProtMI,PseAA,CTriad)
+	Features<-c(SomaMI,MI,SomaCMI,CMI,H2,H3,Gibbs,pH2,pH3,pSomaCMI,pCMI,pepFeatures,aalength,ProtMI,SomaProtMI,PseAA,CTriad)
 	Features[is.na(Features)] <- 0 
 	Features<-data.frame(t(Features),t(PFAMa)) #join with binary vector in a data.frame as they have different types
 	row.names(Features)<-getName(seq)
