@@ -13,7 +13,10 @@ CPU=20;
 trees=750;#number of trees in rf
 cross_validation=10;
 
-source("functions/Serial_gene_features_extraction.R",echo=T)
+script.dir<-dirname(sys.frame(1)$ofile)
+FEATURES_func<-paste0(script.dir,"/functions/Serial_gene_features_extraction.R")
+source(FEATURES_func,echo=T)
+
 PFAM_path="/home/programs/DATABASES/PFAM/Pfam-A.hmm"; #change the path to your hmmpressed pfam database
 ESSENTIAL_GENES_PATH<-("../data/drosophila/GE.fasta") #CDS
 NONESSENTIAL_GENES_PATH<-("../data/drosophila/GNE.fasta") #CDS
