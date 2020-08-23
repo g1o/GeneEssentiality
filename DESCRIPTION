@@ -1,0 +1,29 @@
+Package: GeneEssentiality
+Title: Gene essentiality predictor
+Version: 0.0.1.0000
+Authors@R: 
+    person(given = "Giovanni",
+           family = "Marques de Castro",
+           role = c("aut", "cre"),
+           email = "gmdc@outlook.com",
+           comment = c(ORCID = "0000-0002-2981-3860"))
+Description: Input fasta files of DNA sequences to calculate intrinsic DNA and AA features.
+    Then, use those features to train a model to classify between two groups,
+    or use a model to predict an outcome from those features. 
+    Originally done to classify essential and non-essential genes.
+Imports:
+	data.table,
+	caret,
+	pROC,
+	seqinr,
+	protr,
+	parallel,
+	doParallel,
+	randomForest
+License: `use_gpl3_license()`
+Encoding: UTF-8
+LazyData: true
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.1.1
+Depends: 
+    R (>= 2.10)
