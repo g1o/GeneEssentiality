@@ -1,2 +1,3 @@
-# DR
-Aprendizado de Máquina para predição de genes essenciais para a sobrevivencia dos organismos.
+#GeneEssentiality
+Extract and calculate features of nucleotide sequences and their longest translated CDS. Then use these features to train a machine learning model
+
