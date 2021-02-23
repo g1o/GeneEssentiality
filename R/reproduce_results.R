@@ -4,8 +4,8 @@ reproduce_results<-function(CPU=20,trees=1000,CV=10,repeats=3){
 	seeds<-GeneEssentiality::seeds;
 	models<-lapply(list(GeneEssentiality::drosophila_features, GeneEssentiality::tribolium_features), function(Complete_set){
 			Select_Complete_set<- Select(data=Complete_set);
-			dmel_rfmodels<-train_rfmodels(features=Select_Complete_set,CPU=CPU,trees=trees,CV=CV,repeats=repeats,seeds=seeds);
-			dmel_xmodels<-train_xgbt_svm(features=Select_Complete_set,CPU=CPU,CV=CV,repeats=repeats,seeds=seeds);
+			dmel_rfmodels<-train_rf(features=Select_Complete_set,CPU=CPU,trees=trees,CV=CV,repeats=repeats,seeds=seeds);
+			dmel_xmodels<-train_xgbt(features=Select_Complete_set,CPU=CPU,CV=CV,repeats=repeats,seeds=seeds);
 			models<-list(dmel_rfmodels[[1]],dmel_rfmodels[[2]],dmel_xmodels)
 			return(	models)	} )
 
