@@ -14,48 +14,27 @@
 #' @importFrom caret train trainControl twoClassSummary downSample upSample
 #' @export
 
-train_rfmodels<-function(features=Complete_set,CPU=2,trees=1000,CV=10,repeats=3){
+train_rf<-function(features=Complete_set,CPU=2,trees=1000,CV=10,repeats=3 ,seeds=seeds ){
+set.seed(111)
 	#Original training data
-	mtry<-round(sqrt(length(features)))
-	tunegrid  <- expand.grid(.mtry = c(mtry*2,mtry*4) )
-	control  <- trainControl(method="repeatedcv", number=CV, repeats=repeats,
-		       classProbs = TRUE,summaryFunction=twoClassSummary,
-		       savePredictions = TRUE)
+	mtries<-round(sqrt(length(features)))
+	mtries<-c( mtries, mtries*2) 
+control <- trainControl(method="repeatedcv", number=CV, repeats=repeats,
+                         classProbs = TRUE,summaryFunction=twoClassSummary,
+                         savePredictions = FALSE ,seeds=seeds)
 
-	cls = parallel::makeCluster(CPU)
-	doParallel::registerDoParallel(cls) #--- needed for random forest parallelization
-
-	original_fit<-train(Class ~ .,data=features,metric="ROC",method="rf",trControl=control,tuneGrid=tunegrid,prox=T,allowParallel=TRUE,ntree=trees,importance=T)
-
-	##Cross validation with  Subsampling During Resampling
-	control <- trainControl(method="repeatedcv", number=CV, repeats=repeats,
-			classProbs = TRUE,summaryFunction=twoClassSummary,
-			savePredictions = TRUE,sampling="down")
 	#TRAIN By maximizing the ROC METRIC
-	down_fit<- train(Class ~ .,data=features,metric="ROC",method="rf",trControl=control,
-			tuneGrid=tunegrid,prox=T,allowParallel=TRUE,ntree=trees,importance=T)
-#
-	control$sampling<-"up"
-	up_fit  <- train(Class ~ .,data=features,metric="ROC",method="rf",trControl=control,
-			tuneGrid=tunegrid,prox=T,allowParallel=TRUE,ntree=trees,importance=T)
-#	#Randomize train labels to generate random models
-	features$Class<-sample(features$Class); 
-	up_randomfit  <- train(Class ~ .,data=features,metric="ROC",method="rf",trControl=control,
-			tuneGrid=tunegrid,prox=T,allowParallel=TRUE,ntree=trees,importance=T)
-#
-	control$sampling<-"down"
-	down_randomfit<- train(Class ~ .,data=features,metric="ROC",method="rf",trControl=control,
-			tuneGrid=tunegrid,prox=T,allowParallel=TRUE,ntree=trees,importance=T)
-#	##random 
-	control  <- trainControl(method="repeatedcv", number=CV, repeats=repeats,
-		       classProbs = TRUE,summaryFunction=twoClassSummary,
-		       savePredictions = TRUE)
-	random_fit<-train(Class ~ .,data=features,metric="ROC",method="rf",trControl=control,
-			tuneGrid=tunegrid,prox=T,allowParallel=TRUE,ntree=trees,importance=T)
-#
-#	#
-	models<-list(original_fit,random_fit,up_fit,up_randomfit,down_randomfit,down_fit)
-	names(models)<-c("original_fit","random_fit","up_fit","up_randomfit","down_randomfit","down_fit")
-	parallel::stopCluster(cls)
+	original_fit<-train(Class ~ .,data=features, metric="ROC",method="ranger",
+		tuneGrid=expand.grid(.mtry=mtries , .splitrule="gini",.min.node.size=1),
+		trControl=control,num.trees=trees,num.threads=CPU,importance = 'impurity')
+
+	##Cross validation with  Subsampling During Resampling # no diff
+#	control$sampling<-"down"
+#	down_fit<-train(Class ~ .,data=features, metric="ROC",method="ranger",
+#		tuneGrid=expand.grid(.mtry=mtries , .splitrule="gini",.min.node.size=1),
+#		trControl=control,num.trees=trees,num.threads=CPU,importance = 'impurity')
+
+	models<-list(original_fit,down_fit)
+	names(models)<-c("original_fit","down_fit")
 	return(models)
 }

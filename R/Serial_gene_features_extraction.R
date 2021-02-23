@@ -9,9 +9,9 @@
 #' 
 #protein features not working well with another genetic code
 #just tested in protein coding regions and the standard genetic code (ncbi 1).
-Calc_feats<-function(seq,PFAM_PATH="databases/PFAM/Pfam-A.hmm",LAMBDA=30,OMEGA=0.05){ #calculates the features of one sequence
+Calc_feats<-function(seq,PFAM_PATH="",LAMBDA=30,OMEGA=0.05){ #calculates the features of one sequence
 #                        fs.time <- Sys.time() #timing code
-	if('n' %in% seq ){return();}
+	if(rDNAse::dnacheck(paste(seq,collapse=''))){return();}
 	if(length(seq)<=LAMBDA*3){
 	#	stop("AA length too short: length < LAMBDA"); 	#Can't calculate pseudo aa with it... 
 		return();
@@ -67,8 +67,9 @@ Calc_feats<-function(seq,PFAM_PATH="databases/PFAM/Pfam-A.hmm",LAMBDA=30,OMEGA=0
 	
 #Gibbs Entropy and Entalpy from varGibbs
                         tmp_file<-Sys.getpid();
-                        sequence<-paste(seq,collapse='')
-                        varGibbs_Model_PATH<-c("/mnt/DATABASES/bin/VarGibbs-2.2/data/P-SL98.par") #change to paramter
+                        sequence<-toupper(paste(seq,collapse=''))
+		
+                        varGibbs_Model_PATH<-c("/mnt/DATABASES/bin/VarGibbs-2.2/data/AOP-CMB.par") #change to paramter
                         VarGibbsCMD<-sprintf("vargibbs -seq=%s -ct=1 -o='%s' -calc=prediction -par=%s >/dev/null;
                                         awk -F' ' -v OFS=';' '{print $10,$13}'  %s.dat | head -n2 ",
                                         sequence,tmp_file,varGibbs_Model_PATH,tmp_file) #build command
@@ -127,31 +128,42 @@ MI<-sapply (names(f2) , function(dinucleotide) f2[dinucleotide]*log2(f2[dinucleo
                         names(pCMI)<-names(f3)
                         pSomaCMI<-sum(pCMI,na.rm=T)
 			names(pSomaCMI)<-c("pSomaCMI")
-
+## rDNAse features
+	DACC<-	rDNAse::extrDACC(sequence,allprop=T,nlag=2)
+	TACC<-	rDNAse::extrTACC(sequence,allprop=T,nlag=LAMBDA*3)
+	PseDNC<-rDNAse::extrPseDNC(sequence,lambda=3) # 
 ##protR
-        #Pseudo aminoacid
-        PseAA  <- protr::extractPAAC(paste(longest_orf,collapse=''),lambda=LAMBDA,w=OMEGA) #Chou's pseudoAA
+        PseAA  <- protr::extractPAAC(paste(longest_orf,collapse=''),lambda=LAMBDA,w=OMEGA) # pseudoAA
+	ApseAA <- protr::extractAPAAC(paste(longest_orf,collapse=''),lambda=LAMBDA,w=OMEGA)
+	CTriad <- protr::extractCTriad(paste(longest_orf,collapse='')) #Conjoint Triad 
+	MoreauBroto<-protr::extractMoreauBroto(paste(longest_orf,collapse=''))
+	Moran<-	protr::extractMoran(paste(longest_orf,collapse=''))
+	Geary<-	protr::extractGeary(paste(longest_orf,collapse=''))
+	CTDC<-	protr::extractCTDC(paste(longest_orf,collapse='')) 
+	CTDD<-	protr::extractCTDD(paste(longest_orf,collapse=''))
+	CTDT<-	protr::extractCTDT(paste(longest_orf,collapse=''))
 
-	#Conjoint Triad 
-	CTriad <- protr::extractCTriad(paste(longest_orf,collapse='')) 
+	Features<-c(SomaMI,MI,SomaCMI,CMI,H2,H3,Gibbs,DACC,TACC,PseDNC,pH2,pH3,pSomaCMI,pCMI,pepFeatures,aalength,ProtMI,SomaProtMI,PseAA,CTriad,ApseAA,MoreauBroto,Moran,Geary,CTDC,CTDD,CTDT)
+	Features[is.na(Features)] <- 0 
 
 #Pfam--- Uses external HMMSCAN and perl. Needs pfam database located in the working dir     ↓
-	hmmCMD<-sprintf("perl -e \"while(<>){print '>1\n';print } \" -| hmmscan --acc --noali %s - |\
-	        grep -Po '>> PF\\S+'|sed 's/>> //'", PFAM_PATH) #build command
-	PFAM<-system(hmmCMD,input=paste(longest_orf,collapse=''),intern=T)  #execute command inputing amino acid sequence from longest_orf
+	if(PFAM_PATH!=""){
+		hmmCMD<-sprintf("perl -e \"while(<>){print '>1\n';print } \" -| hmmscan --acc --noali %s - |\
+				grep -Po '>> PF\\S+'|sed 's/>> //'", PFAM_PATH) #build command
+			PFAM<-system(hmmCMD,input=paste(longest_orf,collapse=''),intern=T)  #execute command inputing amino acid sequence from longest_orf
 
-	names(PFAM)<-PFAM;
-	PFAMa <- ifelse(grepl(".", PFAM), T, F)
-#	Put inside the boolean vector
-	names(PFAMa)<-names(PFAM)
+			names(PFAM)<-PFAM;
+		PFAMa <- ifelse(grepl(".", PFAM), T, F)
+			names(PFAMa)<-names(PFAM) 
 
 # numeric vectors
-	Features<-c(SomaMI,MI,SomaCMI,CMI,H2,H3,Gibbs,pH2,pH3,pSomaCMI,pCMI,pepFeatures,aalength,ProtMI,SomaProtMI,PseAA,CTriad)
-	Features[is.na(Features)] <- 0 
-	Features<-data.frame(t(Features),t(PFAMa)) #join with binary vector in a data.frame as they have different types
-	row.names(Features)<-seqinr::getName(seq)
-                        
-	return(Features)
+			Features<-data.frame(t(Features),t(PFAMa)) #join with binary vector in a data.frame as they have different types
+			row.names(Features)<-seqinr::getName(seq)                        
+	}else{
+		Features<-data.frame(t(Features))
+			row.names(Features)<-seqinr::getName(seq)
+	}
+			return(Features)
 }
 
 
