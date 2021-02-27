@@ -34,7 +34,7 @@ control <- trainControl(method="repeatedcv", number=CV, repeats=repeats,
 #		tuneGrid=expand.grid(.mtry=mtries , .splitrule="gini",.min.node.size=1),
 #		trControl=control,num.trees=trees,num.threads=CPU,importance = 'impurity')
 
-	models<-list(original_fit,down_fit)
-	names(models)<-c("original_fit","down_fit")
+	models<-list(original_fit)
+	names(models)<-c("original_fit")
 	return(models)
 }
