@@ -14,14 +14,14 @@
 #' @importFrom caret train trainControl twoClassSummary downSample upSample
 #' @export
 
-train_rf<-function(features=Complete_set,CPU=2,trees=1000,CV=10,repeats=3 ,seeds=seeds ){
+train_rf<-function(features=Complete_set,CPU=2,trees=1000,CV=10,nrepeats=3 ,seeds=seed ,saveprediction=T){
 set.seed(111)
 	#Original training data
 	mtries<-round(sqrt(length(features)))
 	mtries<-c( mtries, mtries*2) 
-control <- trainControl(method="repeatedcv", number=CV, repeats=repeats,
+control <- trainControl(method="repeatedcv", number=CV, repeats=nrepeats,
                          classProbs = TRUE,summaryFunction=twoClassSummary,
-                         savePredictions = FALSE ,seeds=seeds)
+                         savePredictions = saveprediction ,seeds=seed)
 
 	#TRAIN By maximizing the ROC METRIC
 	original_fit<-train(Class ~ .,data=features, metric="ROC",method="ranger",

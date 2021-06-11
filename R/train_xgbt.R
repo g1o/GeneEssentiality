@@ -8,11 +8,11 @@
 #' @importFrom caret train trainControl twoClassSummary downSample upSample
 #' @export
 
-train_xgbt<-function(features=data, seeds=seeds,CPU=4, CV=10, repeats=3){
+train_xgbt<-function(features=data, seeds=seed,CPU=4, CV=10, nrepeats=3,saveprediction=T){
 set.seed(111);
-control <- trainControl(method="repeatedcv", number=CV, repeats=repeats,
+control <- trainControl(method="repeatedcv", number=CV, repeats=nrepeats,
                          classProbs = TRUE,summaryFunction=twoClassSummary,
-                         savePredictions = FALSE,seeds=seeds)
+                         savePredictions = saveprediction,seeds=seed)
 
 	xgbt_m<-train(Class ~ .,data= features,metric="ROC",
 		method="xgbTree", trControl=control,

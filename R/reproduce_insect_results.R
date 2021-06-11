@@ -1,12 +1,15 @@
 #' Run a complete train and test using the data from the package. Reproduces the paper results 
 #' @export
-reproduce_results<-function(CPU=20,trees=1000,CV=10,repeats=3){
-	seeds<-GeneEssentiality::seeds;
-	models<-lapply(list(GeneEssentiality::drosophila_features, GeneEssentiality::tribolium_features), function(Complete_set){
+reproduce_insect_results<-function(CPU=20){
+	trees=1000;
+	CV=10;
+	repeats=3;
+	seed<-GeneEssentiality::seed;
+	models<-lapply(list(GeneEssentiality::drosophila_features,GeneEssentiality::tribolium_features), function(Complete_set){
 			Select_Complete_set<- Select(data=Complete_set);
-			dmel_rfmodels<-train_rf(features=Select_Complete_set,CPU=CPU,trees=trees,CV=CV,repeats=repeats,seeds=seeds);
-			dmel_xmodels<-train_xgbt(features=Select_Complete_set,CPU=CPU,CV=CV,repeats=repeats,seeds=seeds);
-			models<-list(dmel_rfmodels[[1]],dmel_xmodels)
+			rfmodels<-train_rf(features=Select_Complete_set,CPU=CPU,trees=trees,CV=CV,repeats=repeats,seeds=seed);
+			xgbtmodels<-train_xgbt(features=Select_Complete_set,CPU=CPU,CV=CV,repeats=repeats,seeds=seed);
+			models<-list(rfmodels[[1]],xgbtmodels)
 			return(	models)	} )
 
 dmel_importances<-lapply(models[[1]],function(x){varImp(x)});
@@ -41,8 +44,8 @@ models<-DMELM;
 	nullroc<-pROC::roc(GeneEssentiality::tribolium_features$Class,alle$E,direction=">")
 	pvalues_trib<-lapply(result_trib,function(rroc){ pROC::roc.test(rroc,nullroc) } )
 
-		finaldmel<-list(DMELM,result_noh_trib,pvalues_noh_trib,result_dmel,pvalues_dmel,result_trib,pvalues_trib)
-		names(finaldmel)<-c("Dmel_models","result_noh_trib","pvalues_noh_trib","result_dmel","pvalues_dmel","result_trib","pvalues_trib")
+	finaldmel<-list(DMELM,result_noh_trib,pvalues_noh_trib,result_dmel,pvalues_dmel,result_trib,pvalues_trib)
+	names(finaldmel)<-c("Dmel_models","result_noh_trib","pvalues_noh_trib","result_dmel","pvalues_dmel","result_trib","pvalues_trib")
 models<-TRIBM;
         result_noh_trib<-lapply(models,function(x){ res<-predict(x, GeneEssentiality::noh_trib, type="prob");
                 pROC::roc(GeneEssentiality::noh_trib$Class,res$E,direction=">") } );
