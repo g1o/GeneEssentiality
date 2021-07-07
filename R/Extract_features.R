@@ -9,33 +9,35 @@
 #' @param OMEGA Pseudo amino acid composition parameter (0.05). 
 #' @return A data frame of features
 #' @export
-##example Extract<-function(FASTA_PATH="/mnt/DATABASES/essenciais/drosophila/fastas/essential_complete-curated.fasta",PFAM_path="/home/programs/DATABASES/PFAM/Pfam-A.hmm",LAMBDA=50,OMEGA=0.05,CPU=2){
-Extract<-function(FASTA_PATH="",AAfile="",PFAM_path="",LAMBDA=50,OMEGA=0.05,CPU=2,nuc_only=F){
+
+Extract<-function(FASTA_PATH="",AAfile="",PFAM_path="",LAMBDA=50,OMEGA=0.05,CPU=2,nuc_only=F,varGibbs_Model_path="/mnt/DATABASES/bin/VarGibbs-2.2/data/AOP-CMB.par"){
 	#HMMSCAN and PFAM are needed in Calc_feats
 	#If sequence length is less than LAMBDA, then it will be skipped; 
 	SEQS<-seqinr::read.fasta(FASTA_PATH)
-	n<-length(SEQS)
 	if(AAfile==""){
-			cl<-parallel::makeCluster(CPU,type="FORK")
-			Features<-as.data.frame(data.table::rbindlist(
-						parallel::parLapply(cl,1:n,function(N)
-							Calc_feats(SEQS[[N]],PFAM_PATH=PFAM_path,LAMBDA=LAMBDA,OMEGA=OMEGA,nuc_only=nuc_only)),
-
-						fill=T,idcol=T))
+			cl<-parallel::makeCluster(CPU,type="FORK",timeout=12000)
+			on.exit(parallel::stopCluster(cl))
+	#the parallel is importing global variables that are not being used by the loop. tried a lot of things, and still no success. 
+			features_list<-parallel::parLapply(cl,SEQS,function(SEQ){ 
+							Calc_feats(SEQ,PFAM_PATH=PFAM_path,LAMBDA=LAMBDA,OMEGA=OMEGA,nuc_only=nuc_only,varGibbs_Model_PATH=varGibbs_Model_path)})
+			Features<-as.data.frame(data.table::rbindlist(features_list),fill=T,idcol=T)
+			rm(features_list)
 	}else{
 		AAs<-seqinr::read.fasta(AAfile,seqtype="AA") # must have the same number of sequencies as SEQS
 			n<-length(SEQS)
-			cl<-parallel::makeCluster(CPU,type="FORK")
+			cl<-parallel::makeCluster(CPU,type="FORK",timeout=12000) #200 minutes unlikely to happen, only in case of error. 
+			on.exit(parallel::stopCluster(cl)) #garantee that the cluster will be stoped
 			Features<-as.data.frame(data.table::rbindlist(
 						parallel::parLapply(cl,1:n,function(N)
-							Calc_feats(SEQS[[N]],AAs[[N]],PFAM_PATH=PFAM_path,LAMBDA=LAMBDA,OMEGA=OMEGA,nuc_only=nuc_only)),
+							Calc_feats(SEQS[[N]],AAs[[N]],PFAM_PATH=PFAM_path,LAMBDA=LAMBDA,OMEGA=OMEGA,nuc_only=nuc_only,varGibbs_Model_PATH=varGibbs_Model_path)),
 						fill=T,idcol=T))
 	}
 	#=============CALCULATE FEATURES=============
-#	rownames(Features)<-t(Features[,1]) #given when joining both classes
+	rownames(Features)<-Features$rownames
+	Features$rownames<- NULL
+#	Features<-Features[,-1]
 	Features[is.na(Features)] <- F #binnary NA to False
 	Features$Class<-"E" #change Class later
-	parallel::stopCluster(cl)
 	gc();
 	return(Features)
 }

@@ -1,4 +1,4 @@
-#' Generate 1 SVM and 1 XGB models 
+#' Generate 1 XGBT model 
 #' 
 #' @param data A feature data frame including the label of two Classes 
 #' @param CPU Number of threads to use when training the model

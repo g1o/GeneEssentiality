@@ -1,4 +1,6 @@
-#' Run a complete train and test using the data from the package. Reproduces the chapter 1 results
+#' Extract features using the procariote data from the package, then do a complete train and test to reproduces the results from the chapter 1.
+#' 
+#' param CPU number of threads to use, more threads uses more RAM and is faster. 
 #' @export
 reproduce_bacteria_results<-function(CPU=10){
 
@@ -9,7 +11,7 @@ gc()
 endtime  <- Sys.time()
 extracttimes[1] <- endtime - starttime
 starttime<- Sys.time()
-AcinetoNE_fail<-Extract(FASTA_PATH=system.file("extdata", "Acinetobacter_baylyi_ADP1_NE_Fail.fasta.gz", package = "GeneEssentiality"),AAfile ="Acinetobacter_baylyi_ADP1_NE_Fail.faa.gz",CPU=CPU);
+AcinetoNE_fail<-Extract(FASTA_PATH=system.file("extdata", "Acinetobacter_baylyi_ADP1_NE_Fail.fasta.gz", package = "GeneEssentiality"), AAfile =system.file("extdata","Acinetobacter_baylyi_ADP1_NE_Fail.faa.gz", package = "GeneEssentiality"),CPU=CPU);
 gc();
 endtime  <- Sys.time()
 extracttimes[2] <- endtime - starttime
@@ -24,7 +26,7 @@ gc()
 endtime  <- Sys.time()
 extracttimes[4] <- endtime - starttime
 starttime<- Sys.time()
-StaphyloNE_fail<-Extract(FASTA_PATH=system.file("extdata", "Staphylococcus_aureus_NCTC_8325_NE_Fail.fasta.gz", package = "GeneEssentiality"),AAfile ="Staphylococcus_aureus_NCTC_8325_NE_Fail.faa.gz",CPU=CPU);
+StaphyloNE_fail<-Extract(FASTA_PATH=system.file("extdata", "Staphylococcus_aureus_NCTC_8325_NE_Fail.fasta.gz", package = "GeneEssentiality"),AAfile =system.file("extdata","Staphylococcus_aureus_NCTC_8325_NE_Fail.faa.gz", package = "GeneEssentiality"),CPU=CPU);
 gc();
 endtime  <- Sys.time()
 extracttimes[5] <- endtime - starttime
@@ -61,45 +63,45 @@ Training_times <- endtime - starttime
 Acinetotrue_Model_Staphylo_fake_Pred<-predict(RF_Acineto_trueNE$original_fit,Staphylo_fakeNEcds,type="prob")
 Acinetotrue_Model_Staphylo_true_Pred<-predict(RF_Acineto_trueNE$original_fit,Staphylo_trueNEcds,type="prob")
 Acinetotrue_Model_Staphylo_mix_Pred <-predict(RF_Acineto_trueNE$original_fit,Staphylo,type="prob")
-ATSF_roc<-pROC::roc(Staphylo_fakeNEcds$Class, Acinetotrue_Model_Staphylo_fake_Pred$E)
-ATST_roc<-pROC::roc(Staphylo_trueNEcds$Class, Acinetotrue_Model_Staphylo_true_Pred$E)
-ATSM_roc<-pROC::roc(Staphylo$Class, Acinetotrue_Model_Staphylo_mix_Pred$E)
+ATSF_roc<-pROC::roc(Staphylo_fakeNEcds$Class, Acinetotrue_Model_Staphylo_fake_Pred$E,direction=">")
+ATST_roc<-pROC::roc(Staphylo_trueNEcds$Class, Acinetotrue_Model_Staphylo_true_Pred$E,direction=">")
+ATSM_roc<-pROC::roc(Staphylo$Class, Acinetotrue_Model_Staphylo_mix_Pred$E,direction=">")
                                                    
 Staphylotrue_Model_Acineto_fake_Pred<-predict(RF_Staphylo_trueNE$original_fit,Acineto_fakeNEcds,type="prob")
 Staphylotrue_Model_Acineto_true_Pred<-predict(RF_Staphylo_trueNE$original_fit,Acineto_trueNEcds,type="prob")
 Staphylotrue_Model_Acineto_mix_Pred <-predict(RF_Staphylo_trueNE$original_fit,Acineto,type="prob")
-STAF_roc<-pROC::roc(Acineto_fakeNEcds$Class,Staphylotrue_Model_Acineto_fake_Pred$E)
-STAT_roc<-pROC::roc(Acineto_trueNEcds$Class,Staphylotrue_Model_Acineto_true_Pred$E)
-STAM_roc<-pROC::roc(Acineto$Class,Staphylotrue_Model_Acineto_mix_Pred$E)
+STAF_roc<-pROC::roc(Acineto_fakeNEcds$Class,Staphylotrue_Model_Acineto_fake_Pred$E,direction=">")
+STAT_roc<-pROC::roc(Acineto_trueNEcds$Class,Staphylotrue_Model_Acineto_true_Pred$E,direction=">")
+STAM_roc<-pROC::roc(Acineto$Class,Staphylotrue_Model_Acineto_mix_Pred$E,direction=">")
 
 #B models
 Acinetofake_Model_Staphylo_fake_Pred<-predict(RF_Acineto_fakeNE$original_fit,Staphylo_fakeNEcds,type="prob")
 Acinetofake_Model_Staphylo_true_Pred<-predict(RF_Acineto_fakeNE$original_fit,Staphylo_trueNEcds,type="prob")
 Acinetofake_Model_Staphylo_mix_Pred <-predict(RF_Acineto_fakeNE$original_fit,Staphylo,type="prob")
-AFSF_roc<-pROC::roc(Staphylo_fakeNEcds$Class, Acinetofake_Model_Staphylo_fake_Pred$E)
-AFST_roc<-pROC::roc(Staphylo_trueNEcds$Class, Acinetofake_Model_Staphylo_true_Pred$E)
-AFSM_roc<-pROC::roc(Staphylo$Class, Acinetofake_Model_Staphylo_mix_Pred$E)
+AFSF_roc<-pROC::roc(Staphylo_fakeNEcds$Class, Acinetofake_Model_Staphylo_fake_Pred$E,direction=">")
+AFST_roc<-pROC::roc(Staphylo_trueNEcds$Class, Acinetofake_Model_Staphylo_true_Pred$E,direction=">")
+AFSM_roc<-pROC::roc(Staphylo$Class, Acinetofake_Model_Staphylo_mix_Pred$E,direction=">")
 
 Staphylofake_Model_Acineto_fake_Pred<-predict(RF_Staphylo_fakeNE$original_fit,Acineto_fakeNEcds,type="prob")
 Staphylofake_Model_Acineto_true_Pred<-predict(RF_Staphylo_fakeNE$original_fit,Acineto_trueNEcds,type="prob")
 Staphylofake_Model_Acineto_mix_Pred <-predict(RF_Staphylo_fakeNE$original_fit,Acineto,type="prob")
-SFAF_roc<-pROC::roc(Acineto_fakeNEcds$Class,Staphylofake_Model_Acineto_fake_Pred$E)
-SFAT_roc<-pROC::roc(Acineto_trueNEcds$Class,Staphylofake_Model_Acineto_true_Pred$E)
-SFAM_roc<-pROC::roc(Acineto$Class,Staphylofake_Model_Acineto_mix_Pred$E)
+SFAF_roc<-pROC::roc(Acineto_fakeNEcds$Class,Staphylofake_Model_Acineto_fake_Pred$E,direction=">")
+SFAT_roc<-pROC::roc(Acineto_trueNEcds$Class,Staphylofake_Model_Acineto_true_Pred$E,direction=">")
+SFAM_roc<-pROC::roc(Acineto$Class,Staphylofake_Model_Acineto_mix_Pred$E,direction=">")
 #C models
 Acinetomix_Model_Staphylo_fake_Pred<-predict(RF_Acineto_mix$original_fit,Staphylo_fakeNEcds,type="prob")
 Acinetomix_Model_Staphylo_true_Pred<-predict(RF_Acineto_mix$original_fit,Staphylo_trueNEcds,type="prob")
 Acinetomix_Model_Staphylo_mix_Pred <-predict(RF_Acineto_mix$original_fit,Staphylo,type="prob")
-AMSF_roc<-pROC::roc(Staphylo_fakeNEcds$Class, Acinetomix_Model_Staphylo_fake_Pred$E)
-AMST_roc<-pROC::roc(Staphylo_trueNEcds$Class, Acinetomix_Model_Staphylo_true_Pred$E)
-AMSM_roc<-pROC::roc(Staphylo$Class, Acinetomix_Model_Staphylo_mix_Pred$E)
+AMSF_roc<-pROC::roc(Staphylo_fakeNEcds$Class, Acinetomix_Model_Staphylo_fake_Pred$E,direction=">")
+AMST_roc<-pROC::roc(Staphylo_trueNEcds$Class, Acinetomix_Model_Staphylo_true_Pred$E,direction=">")
+AMSM_roc<-pROC::roc(Staphylo$Class, Acinetomix_Model_Staphylo_mix_Pred$E,direction=">")
 
 Staphylomix_Model_Acineto_fake_Pred<-predict(RF_Staphylo_mix$original_fit,Acineto_fakeNEcds,type="prob")
 Staphylomix_Model_Acineto_true_Pred<-predict(RF_Staphylo_mix$original_fit,Acineto_trueNEcds,type="prob")
 Staphylomix_Model_Acineto_mix_Pred <-predict(RF_Staphylo_mix$original_fit,Acineto,type="prob")
-SMAF_roc<-pROC::roc(Acineto_fakeNEcds$Class,Staphylomix_Model_Acineto_fake_Pred$E)
-SMAT_roc<-pROC::roc(Acineto_trueNEcds$Class,Staphylomix_Model_Acineto_true_Pred$E)
-SMAM_roc<-pROC::roc(Acineto$Class,Staphylomix_Model_Acineto_mix_Pred$E)
+SMAF_roc<-pROC::roc(Acineto_fakeNEcds$Class,Staphylomix_Model_Acineto_fake_Pred$E,direction=">")
+SMAT_roc<-pROC::roc(Acineto_trueNEcds$Class,Staphylomix_Model_Acineto_true_Pred$E,direction=">")
+SMAM_roc<-pROC::roc(Acineto$Class,Staphylomix_Model_Acineto_mix_Pred$E,direction=">")
 
 #Zero Rule Model
 ZRMSF<-pROC::roc(Staphylo_fakeNEcds$Class, rep(1,length(Acinetotrue_Model_Staphylo_fake_Pred$E)),direction=">")
@@ -273,8 +275,8 @@ legend(x=0.32,y=0.735,legend=c("",""),col=c("black","blue"), lty=c(1,3),xpd = TR
 legend("bottomright",legend=c("A: teste CDSs verdadeiras","C: teste CDSs misturadas"),col=c("black","blue"), lty=c(1,3),lwd=2,xpd = TRUE)
 dev.off()
 
-
-
-return (list(extracttimes,Training_times,RF_Acineto_fakeNE,RF_Acineto_trueNE,RF_Staphylo_fakeNE,RF_Staphylo_trueNE,RF_Staphylo_mix,RF_Acineto_mix))
+resultados<-(list(extracttimes,Training_times,RF_Acineto_fakeNE,RF_Acineto_trueNE,RF_Staphylo_fakeNE,RF_Staphylo_trueNE,RF_Staphylo_mix,RF_Acineto_mix))
+names(resultados)<-c("extracttimes","Training_times","RF_Acineto_fakeNE","RF_Acineto_trueNE","RF_Staphylo_fakeNE","RF_Staphylo_trueNE","RF_Staphylo_mix","RF_Acineto_mix")
+return (resultados)
 
 }

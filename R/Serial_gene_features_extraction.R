@@ -6,10 +6,10 @@
 #' @param PFAM_PATH Path to the Pfam-A database
 #' @param LAMBDA Pseudo AA composition parameter
 #' @param OMEGA Pseudo AA composition parameter
-#' 
+#' @export 
 #protein features not working well with another genetic code
 #just tested in protein coding regions and the standard genetic code (ncbi 1).
-Calc_feats<-function(seq,aa="",PFAM_PATH="",LAMBDA=30,OMEGA=0.05,nuc_only=F){ #calculates the features of one sequence
+Calc_feats<-function(seq,aa="",PFAM_PATH="",LAMBDA=50,OMEGA=0.05,nuc_only=F,varGibbs_Model_PATH="/mnt/DATABASES/bin/VarGibbs-2.2/data/AOP-CMB.par"){ #calculates the features of one sequence
 #                        fs.time <- Sys.time() #timing code
 	if(rDNAse::dnacheck(paste(seq,collapse=''))){return();}
 	if(length(seq)<=LAMBDA*3){
@@ -19,8 +19,8 @@ Calc_feats<-function(seq,aa="",PFAM_PATH="",LAMBDA=30,OMEGA=0.05,nuc_only=F){ #c
 if(nuc_only==F){
 	if(aa==""){
 		frame0<-seqinr::translate(seq,frame=0,ambiguous=T)
-			frame1<-seqinr::translate(seq,frame=1,ambiguous=T)
-			frame2<-seqinr::translate(seq,frame=2,ambiguous=T)
+		frame1<-seqinr::translate(seq,frame=1,ambiguous=T)
+		frame2<-seqinr::translate(seq,frame=2,ambiguous=T)
 
 			longest_orf<-{
 				start0<-which( frame0 %in% "M")    #vetor posicao de codon de metionina (possivel inicio)
@@ -75,7 +75,6 @@ if(nuc_only==F){
                         tmp_file<-Sys.getpid();
                         sequence<-toupper(paste(seq,collapse=''))
 		
-                        varGibbs_Model_PATH<-c("/mnt/DATABASES/bin/VarGibbs-2.2/data/AOP-CMB.par") #change to paramter
                         VarGibbsCMD<-sprintf("vargibbs -seq=%s -ct=1 -o='%s' -calc=prediction -par=%s >/dev/null;
                                         awk -F' ' -v OFS=';' '{print $10,$13}'  %s.dat | head -n2 ",
                                         sequence,tmp_file,varGibbs_Model_PATH,tmp_file) #build command
@@ -83,6 +82,7 @@ if(nuc_only==F){
                         Gibbs<-as.numeric((strsplit(VarGibbs,';'))[[2]])
                         names(Gibbs)<-strsplit(VarGibbs,';')[[1]]
                         system(paste0('rm ',tmp_file,'*')) # remove tmp files
+			rm(VarGibbs)
 				
 	
 #Shannon Entropy
@@ -111,8 +111,8 @@ MI<-sapply (names(f2) , function(dinucleotide) f2[dinucleotide]*log2(f2[dinucleo
 if(nuc_only==F){
  #Peptide properties
         PEP<-seqinr::AAstat(longest_orf,plot=F)
-        pepFeatures<-c(as.numeric(PEP[[2]]),as.numeric(PEP[3]))
-        names(pepFeatures)<-c(names(PEP[[2]]),names(PEP[3]))
+        pepfunc_features<-c(as.numeric(PEP[[2]]),as.numeric(PEP[3]))
+        names(pepfunc_features)<-c(names(PEP[[2]]),names(PEP[3]))
         
         #Counting aminoacid word frequencies
         f1<-seqinr::count(longest_orf,1,freq=T,alphabet=seqinr::s2c("ACDEFGHIKLMNPQRSTVWY"))
@@ -149,13 +149,13 @@ if(nuc_only==F){
 	CTDD<-	protr::extractCTDD(paste(longest_orf,collapse=''))
 	CTDT<-	protr::extractCTDT(paste(longest_orf,collapse=''))
 
-	Features<-c(SomaMI,MI,SomaCMI,CMI,H2,H3,Gibbs,DACC,TACC,PseDNC,pH2,pH3,pSomaCMI,pCMI,pepFeatures,aalength,ProtMI,SomaProtMI,PseAA,CTriad,ApseAA,MoreauBroto,Moran,Geary,CTDC,CTDD,CTDT)
-	Features[is.na(Features)] <- 0 
-	rm(SomaMI,MI,SomaCMI,CMI,H2,H3,Gibbs,DACC,TACC,PseDNC,pH2,pH3,pSomaCMI,pCMI,pepFeatures,aalength,ProtMI,SomaProtMI,PseAA,CTriad,ApseAA,MoreauBroto,Moran,Geary,CTDC,CTDD,CTDT);
+	func_features<-c(SomaMI,MI,SomaCMI,CMI,H2,H3,Gibbs,DACC,TACC,PseDNC,pH2,pH3,pSomaCMI,pCMI,pepfunc_features,aalength,ProtMI,SomaProtMI,PseAA,CTriad,ApseAA,MoreauBroto,Moran,Geary,CTDC,CTDD,CTDT)
+	func_features[is.na(func_features)] <- 0 
+	rm(SomaMI,MI,SomaCMI,CMI,H2,H3,Gibbs,DACC,TACC,PseDNC,pH2,pH3,pSomaCMI,pCMI,pepfunc_features,aalength,ProtMI,SomaProtMI,PseAA,CTriad,ApseAA,MoreauBroto,Moran,Geary,CTDC,CTDD,CTDT);
 }
 	if(nuc_only==T){
-	        Features<-c(SomaMI,MI,SomaCMI,CMI,H2,H3,Gibbs,DACC,TACC,PseDNC);
-        	Features[is.na(Features)] <- 0;
+	        func_features<-c(SomaMI,MI,SomaCMI,CMI,H2,H3,Gibbs,DACC,TACC,PseDNC);
+        	func_features[is.na(func_features)] <- 0;
 		rm(SomaMI,MI,SomaCMI,CMI,H2,H3,Gibbs,DACC,TACC,PseDNC);
 	}
 #Pfam--- Uses external HMMSCAN and perl. Needs pfam database located in the working dir     ↓
@@ -167,14 +167,15 @@ if(nuc_only==F){
 			PFAMa <- ifelse(grepl(".", PFAM), T, F)
 			names(PFAMa)<-names(PFAM) 
 # numeric vectors
-			Features<-data.frame(t(Features),t(PFAMa)) #join with binary vector in a data.frame as they have different types
-			row.names(Features)<-seqinr::getName(seq)                        
+			func_features<-data.frame(t(func_features),t(PFAMa)) #join with binary vector in a data.frame as they have different types
+			row.names(func_features)<-seqinr::getName(seq)                        
+			func_features$rownames<-seqinr::getName(seq)
 	}else{
-		Features<-data.frame(t(Features))
-			row.names(Features)<-seqinr::getName(seq)
+		func_features<-data.frame(t(func_features))
+			func_features$rownames<-seqinr::getName(seq)
 	}
 	gc();
-	return(Features)
+	return(func_features)
 }
 
 

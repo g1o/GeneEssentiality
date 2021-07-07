@@ -1,9 +1,13 @@
 #' Generate six RF models from two classes
 #' 
-#' It will return a list with 3 normal rf models and 3 rf models made with randomized labels.
+#' This returns a list with one random forest model
+#' 
+#' 
+#' The followind had no significant improvement and took too much time. In the future it may be activated with another parameter.  
+#' *It will return a list with 3 normal rf models and 3 rf models made with randomized labels.
 #' The models 1 and 2 are trained without any subsampling.
-#' The models 3 and 4 are trained using upsampling during the cross-validation (Subsampling During Resampling).
-#' The models 5 and 6 are trained using downsampling during the cross-validation (Subsampling During Resampling).
+#' #' The models 3 and 4 are trained using upsampling during the cross-validation (Subsampling During Resampling).
+#' The models 5 and 6 are trained using downsampling during the cross-validation (Subsampling During Resampling).*
 #' 
 #' @param data A feature data frame including the label of two Classes 
 #' @param CPU Number of threads to use when training the model
