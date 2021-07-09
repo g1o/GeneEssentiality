@@ -20,7 +20,7 @@ Extract<-function(FASTA_PATH="",AAfile="",PFAM_path="",LAMBDA=50,OMEGA=0.05,CPU=
 	#the parallel is importing global variables that are not being used by the loop. tried a lot of things, and still no success. 
 			features_list<-parallel::parLapply(cl,SEQS,function(SEQ){ 
 							Calc_feats(SEQ,PFAM_PATH=PFAM_path,LAMBDA=LAMBDA,OMEGA=OMEGA,nuc_only=nuc_only,varGibbs_Model_PATH=varGibbs_Model_path)})
-			Features<-as.data.frame(data.table::rbindlist(features_list),fill=T,idcol=T)
+			Features<-as.data.frame(data.table::rbindlist(features_list),fill=T,idcol=F)
 			rm(features_list)
 	}else{
 		AAs<-seqinr::read.fasta(AAfile,seqtype="AA") # must have the same number of sequencies as SEQS
@@ -30,7 +30,7 @@ Extract<-function(FASTA_PATH="",AAfile="",PFAM_path="",LAMBDA=50,OMEGA=0.05,CPU=
 			Features<-as.data.frame(data.table::rbindlist(
 						parallel::parLapply(cl,1:n,function(N)
 							Calc_feats(SEQS[[N]],AAs[[N]],PFAM_PATH=PFAM_path,LAMBDA=LAMBDA,OMEGA=OMEGA,nuc_only=nuc_only,varGibbs_Model_PATH=varGibbs_Model_path)),
-						fill=T,idcol=T))
+						fill=T,idcol=F))
 	}
 	#=============CALCULATE FEATURES=============
 	rownames(Features)<-Features$rownames
