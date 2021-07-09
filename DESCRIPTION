@@ -19,7 +19,7 @@ Imports:
 	protr,
 	parallel,
 	ranger,
-	Xgboost
+	xgboost
 License: `use_gpl3_license()`
 Encoding: UTF-8
 LazyData: true
