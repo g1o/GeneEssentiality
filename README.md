@@ -1,5 +1,5 @@
 # GeneEssentiality
-Extract and calculate features of nucleotide sequences and their longest translated CDS. Then use these features to train a machine learning model
+Extract and calculate features of nucleotide sequences and their longest translated CDS (only 3+ frames, assumes the sequence is in the correct strand). Then use these features to train a machine learning model
 
 To install the package use the command:
 ```
