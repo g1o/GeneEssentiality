@@ -1,6 +1,6 @@
 #' Extract features using the procariote data from the package, then do a complete train and test to reproduces the results from the chapter 1.
 #' 
-#' param CPU number of threads to use, more threads uses more RAM and is faster. 
+#' @param CPU number of threads to use, more threads uses more RAM and is faster. 
 #' @export
 reproduce_bacteria_results<-function(CPU=10){
 

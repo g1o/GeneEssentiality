@@ -13,7 +13,7 @@
 #' @param CPU Number of threads to use when training the model
 #' @param trees Number of trees for the random forest (rf) model
 #' @param CV Number of sets for the cross-validation
-#' @param repeats 
+#' @param nrepeats 
 #' @return A list of models
 #' @importFrom caret train trainControl twoClassSummary downSample upSample
 #' @export

@@ -3,7 +3,7 @@
 #' @param data A feature data frame including the label of two Classes 
 #' @param CPU Number of threads to use when training the model
 #' @param CV Number of sets for the cross-validation
-#' @param repeats 
+#' @param nrepeats 
 #' @return A list of models
 #' @importFrom caret train trainControl twoClassSummary downSample upSample
 #' @export
