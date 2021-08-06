@@ -1,15 +1,15 @@
-#' Run a complete train and test using the data from the package. Reproduces the paper results 
-#' Can also be used to compare two datasets with the same comparsion made for the insects. The required column is the Clas, and its values must be "E" or "NE".
-#' Reditect to an object to save the models, ROCs results and Pvalues from the De longs test.  Plots are outputed to a file in the working dir.
+#' Run a complete train and test using the provided features, both dataframes must have the same features.
+#' Used to compare two datasets with the same comparsion made for the insects, leaving one dataset out. The required column is the Class, and its values must be "E" or "NE".
+#' Reditect to an object to save the models, ROCs results and Pvalues.  Plots are outputed to a file in the working dir.
 #' @param CPU Number of threads to use
 #' @param set1 Data.frame with the features of the first set. This will be used to train a model and as a test for the model trained from the second set. Default is the Drosophila melanogaster features
 #' @param set2 Data.frame with the features of the second set. This will be used to train a model and as a test for the model trained from the first set. Default is the Tribolium castaneum features
-#' @param seeds List of vectors, 30 lists of vectors with 6 elements and the last list with a single number, for the final model
+#' @param seeds List of vectors, 30 lists of vectors with 6 elements, and the last list with a single number for the final model
 #' @param plot_prefix Input a prefix for the filename of the plots. Default is "Insects_"
-#' @param set1.name Name to be used for the title of the plots for the first set. Default is "Dmel"
-#' @param set2.name Name to be used for the title of the plots for the first set. Default is "Trib"
+#' @param set1.name Name to be used for the title of the plots for the first set. Default is "Set1"
+#' @param set2.name Name to be used for the title of the plots for the first set. Default is "Set2"
 #' @export
-reproduce_insect_results<-function(set1=GeneEssentiality::drosophila_features,set2=GeneEssentiality::tribolium_features,CPU=20,seeds=GeneEssentiality::seed,plot_prefix="Insects_",set1.name="Dmel",set2.name="Trib"){
+compare_two_datasets<-function(set1=GeneEssentiality::drosophila_features,set2=GeneEssentiality::tribolium_features,CPU=20,seeds=GeneEssentiality::seed,plot_prefix="Compared_",set1.name="Set1",set2.name="Set2"){
 	trees=1000;
 	CV=10;
 	repeats=3;
@@ -29,14 +29,6 @@ DMELM<-models[[1]];
 TRIBM<-models[[2]];
 
 models<-DMELM;
-	roc_noh_trib<-lapply(models,function(x){ res<-predict(x, GeneEssentiality::noh_trib, type="prob");
-		pROC::roc(GeneEssentiality::noh_trib$Class,res$E,direction=">") } );
-	alle<-as.data.frame(roc_noh_trib[[1]]$predictor/roc_noh_trib[[1]]$predictor)
-	alle$NE<-0
-	colnames(alle)<-c("E","NE")
-	ZRroc<-pROC::roc(GeneEssentiality::noh_trib$Class,alle$E,direction=">")
-	pvalues_noh_trib<-lapply(roc_noh_trib,function(rroc){ pROC::roc.test(rroc,ZRroc) } )
-
 	roc_trib<-lapply(models,function(x){ res<-predict(x,set2,type="prob");
 		pROC::roc(set2$Class,res$E,direction=">") } );
 	alle<-as.data.frame(roc_trib[[1]]$predictor/roc_trib[[1]]$predictor)
@@ -96,20 +88,10 @@ text(x=0.25, y = 0.30, labels = paste0("P-value= ",signif(pvalue,digits=3)),cex=
 legend(x="topleft",c("RF","XGBT"),col=c(1,2),lty=1)
 title(adj=0,line=2.5,main="B)",cex.main=2)
 
-#####################  Dmel models vs noh-Trib
-pvalue<- finaldmel$pvalues_noh_trib$RF$p.value 
-ROC_title<-paste0("ROC: ",set1.name," models vs noh-Trib")
-plot(finaldmel$roc_noh_trib$RF,legend=F,color="black",print.auc=T,print.auc.cex=size,main=ROC_title)
-text(x=0.25, y = 0.35, labels = paste0("P-value= ",signif(pvalue,digits=3)),cex=size)
-pvalue<- finaldmel$pvalues_noh_trib$XGBT$p.value
-plot(finaldmel$roc_noh_trib$XGBT,legend=F,print.auc=T,print.auc.y=0.455 , add=T,print.auc.cex=size,col="red")
-text(x=0.25, y = 0.30, labels = paste0("P-value= ",signif(pvalue,digits=3)),cex=size,col="red")
-legend(x="topleft",c("RF","XGBT"),col=c(1,2),lty=1)
-title(adj=0,line=2.5,main="C)",cex.main=2)
 dev.off()
 
 
-####################  Precision Recall curves 
+####################  Precision Recall curves #### Set 1 vs Set 2
 #svg("Insects_PRCs.svg",height=4,width=12)
 plotname<-paste0(plot_prefix,"PRCs.svg")
 svg(plotname,height=4,width=12)
@@ -127,7 +109,7 @@ text(x=0.35, y = 0.85, labels =paste0("ZR AUC= ", signif(prcurve_noh_ZR$auc.inte
 legend(x="topright",c("RF","XGBT"),col=c(1,2),lty=1)
 title(adj=0,line=1.5,main="A)",cex.main=2)
 
-##########################################################################################################
+###################### Set 2 vs Set 1 #######################################
 prcurve_noh1 = pr.curve(c(finaltrib$roc_dmel$RF$original.predictor),weights.class0=(finaltrib$roc_dmel$RF$original.response=='E')*1,curve=T) #rf 
 prcurve_noh2 = pr.curve(c(finaltrib$roc_dmel$XGBT$original.predictor),weights.class0=(finaltrib$roc_dmel$XGBT$original.response=='E')*1,curve=T) #xgbt
 prcurve_noh_ZR = pr.curve(c(finaltrib$pvalues_dmel$RF$roc2$original.predictor[-1],0),weights.class0=(finaltrib$pvalues_dmel$RF$roc2$original.response=='E')*1,curve=T)
@@ -142,20 +124,6 @@ text(x=0.35, y = 0.85, labels =paste0("ZR AUC= ", signif(prcurve_noh_ZR$auc.inte
 legend(x="topright",c("RF","XGBT"),col=c(1,2),lty=1)
 title(adj=0,line=1.5,main="B)",cex.main=2)
 
-#############################################################################################################
-prcurve_noh1 = pr.curve(c(finaldmel$roc_noh_trib$RF$original.predictor),weights.class0=(finaldmel$roc_noh_trib$RF$original.response=='E')*1,curve=T) #rf 
-prcurve_noh2 = pr.curve(c(finaldmel$roc_noh_trib$XGBT$original.predictor),weights.class0=(finaldmel$roc_noh_trib$XGBT$original.response=='E')*1,curve=T) #xgbt
-prcurve_noh_ZR = pr.curve(c(finaldmel$pvalues_noh_trib$RF$roc2$original.predictor[-1],0),weights.class0=(finaldmel$pvalues_noh_trib$RF$roc2$original.response=='E')*1,curve=T)
-
-PRC_title<-paste0("PRC: ",set1.name," models vs noh-Trib")
-plot(prcurve_noh1,auc.main=F,main=PRC_title,color="black")
-plot(prcurve_noh2,auc.main=F,add=T,color="red")
-plot(prcurve_noh_ZR,auc.main=F,add=T,color="gray",lty=2)
-text(x=0.35, y = 0.95, labels =paste0(" RF  AUC= ", prcurve_noh1$auc.integral))
-text(x=0.35, y = 0.90, labels =paste0("XGBT AUC= ", prcurve_noh2$auc.integral),col="red")
-text(x=0.35, y = 0.85, labels =paste0("ZR AUC= ", prcurve_noh_ZR$auc.integral),col="dark gray")
-legend(x="topright",c("RF","XGBT"),col=c(1,2),lty=1)
-title(adj=0,line=1.5,main="C)",cex.main=2)
 dev.off()
 
 
