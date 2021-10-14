@@ -5,24 +5,29 @@
 \title{A feature extractor function.}
 \usage{
 Extract(
-  PFAM_path = "/home/programs/DATABASES/PFAM/Pfam-A.hmm",
- 
-    FASTA_PATH = "/mnt/DATABASES/essenciais/drosophila/fastas/essential_complete-curated.fasta",
+  FASTA_PATH = "",
+  AAfile = "",
+  PFAM_path = "",
   LAMBDA = 50,
   OMEGA = 0.05,
-  CPU = 2
+  CPU = 2,
+  nuc_only = F,
+  varGibbs_Model_path = "/mnt/DATABASES/bin/VarGibbs-2.2/data/AOP-CMB.par",
+  subcel = F
 )
 }
 \arguments{
-\item{PFAM_path}{Path to the PfamA database.}
-
 \item{FASTA_PATH}{Path to the DNA fasta file.}
+
+\item{PFAM_path}{Path to the PfamA database.}
 
 \item{LAMBDA}{Pseudo amino acid composition parameter. Sequences with less amino acids than LAMBDA will be removed (50).}
 
 \item{OMEGA}{Pseudo amino acid composition parameter (0.05).}
 
 \item{CPU}{Number of threads to use. Each sequence will use one thread (2).}
+
+\item{subcel}{use DeepLoc1.0 to predict probabilities for subcellular localization (F)}
 }
 \value{
 A data frame of features

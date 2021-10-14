@@ -1,6 +1,6 @@
 Package: GeneEssentiality
 Title: Gene essentiality predictor
-Version: 1.0.0.0000
+Version: 1.2.4.1000
 Authors@R: 
     person(given = "Giovanni",
            family = "Marques de Castro",

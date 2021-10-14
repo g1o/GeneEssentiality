@@ -9,7 +9,7 @@
 #' @export 
 #protein features not working well with another genetic code
 #just tested in protein coding regions and the standard genetic code (ncbi 1).
-Calc_feats<-function(seq,aa="",PFAM_PATH="",LAMBDA=50,OMEGA=0.05,nuc_only=F,varGibbs_Model_PATH="/mnt/DATABASES/bin/VarGibbs-2.2/data/AOP-CMB.par"){ #calculates the features of one sequence
+Calc_feats<-function(seq,aa="",PFAM_PATH="",LAMBDA=50,OMEGA=0.05, subcel=T, nuc_only=F,varGibbs_Model_PATH="/mnt/DATABASES/bin/VarGibbs-2.2/data/AOP-CMB.par"){ #calculates the features of one sequence
 #                        fs.time <- Sys.time() #timing code
 	if(rDNAse::dnacheck(paste(seq,collapse=''))){return();}
 	if(length(seq)<=LAMBDA*3){
@@ -67,10 +67,22 @@ if(nuc_only==F){
 }
 #                        fs.time <- Sys.time() #timing code
 #Counting words frequencies
-                        f1<-seqinr::count(seq,1,freq=T)
-                        f2<-seqinr::count(seq,2,freq=T)
-                        f3<-seqinr::count(seq,3,freq=T)
-	
+	f1<-seqinr::count(seq,1,freq=T);
+	f2<-seqinr::count(seq,2,freq=T);
+	f3<-seqinr::count(seq,3,freq=T);
+# DeepLoc1.0 (BLOSUM62 : fast mode) # academic license#
+if(subcel==T){
+	tmp_file<-Sys.getpid();
+	sequence<-toupper(paste(longest_orf,collapse=''));
+	### DeepLoc1.0 BLOSUM62 
+#using in /dev/shm/ because there is too much read/write on disk, and our distributed storage is slow on this ; may be optimized 
+	subcellular_cmd<-sprintf(' echo "%s" | perl -pe "s/^/>dummy\n/ " > /dev/shm/%s.fasta ; deeploc -f /dev/shm/%s.fasta -o /dev/shm/%s.subcel 1>/dev/null 2>/dev/null; cat /dev/shm/%s.subcel.txt | cut -f 3-',        sequence,tmp_file,tmp_file,tmp_file,tmp_file) ;#build command
+	subcellular<-system(subcellular_cmd,intern=T); #execute command
+	subcellular_location<-as.numeric((strsplit(subcellular,'\t'))[[2]]);
+	names(subcellular_location)<-strsplit(subcellular,'\t')[[1]];
+	system(paste0('rm /dev/shm/',tmp_file,'*')); # remove tmp files
+	rm(VarGibbs); #clean
+}
 #Gibbs Entropy and Entalpy from varGibbs
                         tmp_file<-Sys.getpid();
                         sequence<-toupper(paste(seq,collapse=''))
@@ -142,14 +154,17 @@ if(nuc_only==F){
         PseAA  <- protr::extractPAAC(paste(longest_orf,collapse=''),lambda=LAMBDA,w=OMEGA) # pseudoAA
 	ApseAA <- protr::extractAPAAC(paste(longest_orf,collapse=''),lambda=LAMBDA,w=OMEGA)
 	CTriad <- protr::extractCTriad(paste(longest_orf,collapse='')) #Conjoint Triad 
-	MoreauBroto<-protr::extractMoreauBroto(paste(longest_orf,collapse=''))
-	Moran<-	protr::extractMoran(paste(longest_orf,collapse=''))
-	Geary<-	protr::extractGeary(paste(longest_orf,collapse=''))
+	MoreauBroto<-protr::extractMoreauBroto(paste(longest_orf,collapse=''),nlag=LAMBDA)
+	Moran<-	protr::extractMoran(paste(longest_orf,collapse=''),nlag=LAMBDA)
+	Geary<-	protr::extractGeary(paste(longest_orf,collapse=''),nlag=LAMBDA)
 	CTDC<-	protr::extractCTDC(paste(longest_orf,collapse='')) 
 	CTDD<-	protr::extractCTDD(paste(longest_orf,collapse=''))
 	CTDT<-	protr::extractCTDT(paste(longest_orf,collapse=''))
 
 	func_features<-c(SomaMI,MI,SomaCMI,CMI,H2,H3,Gibbs,DACC,TACC,PseDNC,pH2,pH3,pSomaCMI,pCMI,pepfunc_features,aalength,ProtMI,SomaProtMI,PseAA,CTriad,ApseAA,MoreauBroto,Moran,Geary,CTDC,CTDD,CTDT)
+	if(subcel==T){
+		func_features<-c(func_features,subcellular_location)
+	}
 	func_features[is.na(func_features)] <- 0 
 	rm(SomaMI,MI,SomaCMI,CMI,H2,H3,Gibbs,DACC,TACC,PseDNC,pH2,pH3,pSomaCMI,pCMI,pepfunc_features,aalength,ProtMI,SomaProtMI,PseAA,CTriad,ApseAA,MoreauBroto,Moran,Geary,CTDC,CTDD,CTDT);
 }

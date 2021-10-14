@@ -1,6 +1,9 @@
+#' Reproduce Drosophila melanogaster and Tribolium castaneum train and tests 
+#'
 #' Run a complete train and test using the data from the package. Reproduces the paper results 
 #' Can also be used to compare two datasets with the same comparsion made for the insects. The required column is the Clas, and its values must be "E" or "NE".
 #' Reditect to an object to save the models, ROCs results and Pvalues from the De longs test.  Plots are outputed to a file in the working dir.
+#'
 #' @param CPU Number of threads to use
 #' @param set1 Data.frame with the features of the first set. This will be used to train a model and as a test for the model trained from the second set. Default is the Drosophila melanogaster features
 #' @param set2 Data.frame with the features of the second set. This will be used to train a model and as a test for the model trained from the first set. Default is the Tribolium castaneum features
@@ -21,10 +24,8 @@ reproduce_insect_results<-function(set1=GeneEssentiality::drosophila_features,se
 			models<-list(rfmodels[[1]],xgbtmodels)
 			return(	models)	} )
 
-dmel_importances<-lapply(models[[1]],function(x){varImp(x)});
-trib_importances<-lapply(models[[2]],function(x){varImp(x)});
+#dmel_importances<-lapply(models[[1]],function(x){varImp(x)});
 
-modelss<-models;
 DMELM<-models[[1]];
 TRIBM<-models[[2]];
 

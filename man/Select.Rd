@@ -4,7 +4,7 @@
 \alias{Select}
 \title{Remove features of little importance}
 \usage{
-Select(data = Complete_set)
+Select(data = Complete_set, remove_logical = T)
 }
 \arguments{
 \item{data}{A feature data frame including the Class label}

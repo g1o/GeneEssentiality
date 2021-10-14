@@ -6,9 +6,13 @@
 \usage{
 Calc_feats(
   seq,
-  PFAM_PATH = "databases/PFAM/Pfam-A.hmm",
-  LAMBDA = 30,
-  OMEGA = 0.05
+  aa = "",
+  PFAM_PATH = "",
+  LAMBDA = 50,
+  OMEGA = 0.05,
+  subcel = T,
+  nuc_only = F,
+  varGibbs_Model_PATH = "/mnt/DATABASES/bin/VarGibbs-2.2/data/AOP-CMB.par"
 )
 }
 \arguments{
