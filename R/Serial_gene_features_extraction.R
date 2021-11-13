@@ -6,10 +6,13 @@
 #' @param PFAM_PATH Path to the Pfam-A database
 #' @param LAMBDA Pseudo AA composition parameter
 #' @param OMEGA Pseudo AA composition parameter
+#' @param subcel calculates subcellular function using deeploc1.0 BLOSSUM68, very slow this way, it is better to calculate externaly as of now.
+#' @param remove_X When there is a stop-codon suppression Flybase uses an X in its place, as we do not know which aminoacid is supposed to be there, we remove these X aminoacids to avoid losing otherwise important information [TRUE]
 #' @export 
 #protein features not working well with another genetic code
 #just tested in protein coding regions and the standard genetic code (ncbi 1).
-Calc_feats<-function(seq,aa="",PFAM_PATH="",LAMBDA=50,OMEGA=0.05, subcel=T, nuc_only=F,varGibbs_Model_PATH="/mnt/DATABASES/bin/VarGibbs-2.2/data/AOP-CMB.par"){ #calculates the features of one sequence
+Calc_feats<-function(seq,aa="",PFAM_PATH="",LAMBDA=50,OMEGA=0.05, subcel=F, nuc_only=F,varGibbs_Model_PATH="/mnt/DATABASES/bin/VarGibbs-2.2/data/AOP-CMB.par" ,remove_X=T){ 
+#calculates the features of one sequence
 #                        fs.time <- Sys.time() #timing code
 	if(rDNAse::dnacheck(paste(seq,collapse=''))){return();}
 	if(length(seq)<=LAMBDA*3){
@@ -58,12 +61,22 @@ if(nuc_only==F){
 	#Can't calculate pseudo aa with it... 
 		return();
 	}
+	## Replace non-standart aminoacids with their closest, since most code were not meant for them
+	if(remove_X==T){
+		longest_orf<-gsub(longest_orf,pattern="X",replacement="") # Stop-codon suppression is marked as X in Flybase
+	}
+	longest_orf<-gsub(longest_orf,pattern="O",replacement="K") # Pyrrolysine => lysine 
+	longest_orf<-gsub(longest_orf,pattern="U",replacement="C") # Selenocysteine => cysteine
 	#Resolve problems due to a ambiguos base
-	Xaa<-seqinr::count(longest_orf,1,freq=F,alphabet=seqinr::s2c("X")) # Check number of surviving ambiguous bases 
-	if(Xaa>=1){ #if there are ambiguos bases 
+	if(!(protr::protcheck(toupper(paste(longest_orf,collapse=''))))){
 		return();
 	}
-	rm(Xaa);
+#	Xaa<-seqinr::count(longest_orf,1,freq=F,alphabet=seqinr::s2c("X")) # Check number of surviving ambiguous bases 
+#	if(Xaa>=1){ #if there are ambiguos bases 
+#		return();
+#	}
+#	rm(Xaa);
+	#skip proteins that will give an error 
 }
 #                        fs.time <- Sys.time() #timing code
 #Counting words frequencies

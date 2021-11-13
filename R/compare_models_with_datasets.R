@@ -12,9 +12,9 @@
 #' @param test_vs_ZR Use pROC::roc.test of the tested ROC-AUC against a model that classifies every sample as the same class with the same probability (Zero Rule: ROC-AUC of 1.5). If set to FALSE, then test the results in a all vs all. If there is a single model and test_vs_ZR = FALSE, it will revert to TRUE. If set to "both", show both. 
 #' @return The AUCs of the tests
 #' @export
+
+##BUG: if any set _model has length < 2 then it will do vs ZR for all 
 VS_models_plot<-function(set1_model=list() , set2_model=list() , set1_data="", set2_data="", file_prefix="Compared_",set1.dataname="Set1", set2.dataname="Set2", set1.modelname="set1_model", set2.modelname="set2_model", test_vs_ZR=T){
-
-
 
 	test_mem=0;
 	if( length(set1_model)==1 & test_vs_ZR==F ){
@@ -100,7 +100,7 @@ VS_models_plot<-function(set1_model=list() , set2_model=list() , set1_data="", s
 	AUCS_1$model_names[i] <- names(finaldmel[[1]][i]) ;
 	if (test_vs_ZR==T){
 		pvalue <-  finaldmel[[2]][[i]]$p.value;
-		legend(x=0.6, y =0.5 , legend = paste0("AUC: ", signif(finaldmel[[1]][[1]]$auc,digits=3)," | P= ",signif(pvalue,digits=2)),cex=size,col=1,lty=i,bty="n");
+		legend(x=0.6, y =0.5 , legend = paste0("vs ZR  P= ",signif(pvalue,digits=2)),cex=size,col=1,lty=i,bty="n");
 		AUCS_1$pvalue<-0;
 		AUCS_1$pvalue[i]<-signif(pvalue,digits=3);
 	}
@@ -115,7 +115,7 @@ VS_models_plot<-function(set1_model=list() , set2_model=list() , set1_data="", s
 
 			if (test_vs_ZR==T){
 				pvalue<-  finaldmel[[2]][[i]]$p.value;
-				legend(x=0.6, y = textY , legend = paste0("AUC: ",AUCS_1$ROC[i]," | P= ",signif(pvalue,digits=2)),cex=size,col=1,lty=i,bty="n");
+				legend(x=0.6, y = textY , legend = paste0("vs ZR  P= ",signif(pvalue,digits=2)),cex=size,col=1,lty=i,bty="n");
 		                AUCS_1$pvalue[i]<-signif(pvalue,digits=3);
 			}
 		}
@@ -126,9 +126,10 @@ VS_models_plot<-function(set1_model=list() , set2_model=list() , set1_data="", s
                 pvalues_vector<-signif ( sapply(finaldmel[[2]],'[[',"p.value") , digits=2) ;
                 i=0;
                 for (char in (strsplit(names(finaldmel[[2]]),'_'))){
-                        textY=0.5-(0.05*i);
-                        i=i+1;
-                        legend(x=0.6, y = textY , legend = c("VS",paste0("P= ", pvalues_vector[i])),cex=size,col=1,lty=as.numeric(char[c(3,1)]),bty="n",ncol=2);
+			textY=0.58-(0.05*i);
+			i=i+1;
+                        legend(x=0.45, y = textY , legend = "vs" , cex=size,col=1,lty=as.numeric(char[3]), bty="n") ;
+                        legend(x=0.45-0.16, y = textY , legend = paste0("P=", pvalues_vector[i]),cex=size,col=1,lty=as.numeric(char[1]),bty="n");
                 }
 	}
 	
@@ -153,7 +154,7 @@ VS_models_plot<-function(set1_model=list() , set2_model=list() , set1_data="", s
 
 	if (test_vs_ZR==T){
 		pvalue<-  finaltrib[[2]][[i]]$p.value;
-		legend(x=0.6, y =0.5 , legend = paste0("AUC: ", signif(finaltrib[[1]][[1]]$auc,digits=3)," | P= ",signif(pvalue,digits=2)),cex=size,col=1,lty=i,bty="n")
+		legend(x=0.6, y =0.5 , legend = paste0("vs ZR  P= ",signif(pvalue,digits=2)),cex=size,col=1,lty=i,bty="n")
                 AUCS_2$pvalue<-0;
                 AUCS_2$pvalue[i]<-signif(pvalue,digits=3);
 	}
@@ -169,7 +170,7 @@ VS_models_plot<-function(set1_model=list() , set2_model=list() , set1_data="", s
 
 			if (test_vs_ZR==T){
 				pvalue<-  finaltrib[[2]][[i]]$p.value;
-				legend(x=0.6, y = textY , legend = paste0("AUC: ", AUCS_2$ROC[i ] ," | P= ",signif(pvalue,digits=2)),cex=size,col=1,lty=i,bty="n");
+				legend(x=0.6, y = textY , legend = paste0("vs ZR  P= ",signif(pvalue,digits=2)),cex=size,col=1,lty=i,bty="n");
 	               		AUCS_2$pvalue[i]<-signif(pvalue,digits=3);
 			}
 		}
@@ -180,9 +181,10 @@ VS_models_plot<-function(set1_model=list() , set2_model=list() , set1_data="", s
 		pvalues_vector<-signif ( sapply(finaltrib[[2]],'[[',"p.value") , digits=2) ;
 		i=0;
 		for (char in (strsplit(names(finaltrib[[2]]),'_'))){ 
-			textY=0.5-(0.05*i);
+			textY=0.58-(0.05*i);
 			i=i+1;
-			legend(x=0.6, y = textY , legend = c("VS",paste0("P= ", pvalues_vector[i])),cex=size,col=1,lty=as.numeric(char[c(3,1)]),bty="n",ncol=2);
+                        legend(x=0.45, y = textY , legend = "vs" , cex=size,col=1,lty=as.numeric(char[3]), bty="n") ;
+                        legend(x=0.45-0.16, y = textY , legend = paste0("P=", pvalues_vector[i]),cex=size,col=1,lty=as.numeric(char[1]),bty="n");
 		}
 	}
 
@@ -224,6 +226,7 @@ VS_models_plot<-function(set1_model=list() , set2_model=list() , set1_data="", s
       plot(prcurve,auc.main=F,add=T,color="gray",lty=2,lwd=2);
       legend(x="bottomright", legend= paste0(c(names(finaldmel[[1]]),"ZR"), ": AUC = ", c(AUCS_1$PRC, signif(prcurve$auc.integral,digits=3) ) ),col=c(rep(1,length(finaldmel[[1]])),"gray"),lty=c(1:length(finaldmel[[1]]),2) );
       title(adj=0,line=1.5,main="A)",cex.main=2);
+      PR1_ZR = signif(prcurve$auc.integral,digits=3)
     }
 ###################### Set 2 vs Set 1 #######################################
   if(var(finaltrib[[1]][[1]]$original.predictor)==0 ) {
@@ -249,14 +252,29 @@ VS_models_plot<-function(set1_model=list() , set2_model=list() , set1_data="", s
       textY=0.95-(0.05*(i-1))
     };
     prcurve = PRROC::pr.curve(c(finaltrib[[1]][[1]]$original.predictor[-1]/finaltrib[[1]][[1]]$original.predictor[-1],0),weights.class0=(finaltrib[[1]][[1]]$original.response=='E')*1,curve=T);
+
+
     plot(prcurve,auc.main=F,add=T,color="gray",lty=2,lwd=2);
     legend(x="bottomright",y= textY ,legend= paste0(c(names(finaltrib[[1]]),"ZR"), ": AUC = ", c(AUCS_2$PRC,signif(prcurve$auc.integral,digits=3)) ),col=c(rep(1,length(finaltrib[[1]])),"gray"),lty=c(1:length(finaltrib[[1]]),2) );
     title(adj=0,line=1.5,main="B)",cex.main=2);
+    PR2_ZR = signif(prcurve$auc.integral,digits=3)
   }
   dev.off()
-
   AUCS_1$testSet<-set2.dataname;
   AUCS_2$testSet<-set1.dataname;
+  AUCS_1[["Trained in"]] <-set1.modelname ;
+  AUCS_2[["Trained in"]] <-set2.modelname ;
+  AUCS_1[["Algorithm"]] <- sapply(set1_model , function(x){ x$modelInfo$label} ) # get algorithm name
+  AUCS_2[["Algorithm"]] <- sapply(set2_model , function(x){ x$modelInfo$label} ) # get algorithm name
+  AUCS_1$PR_ZR<-PR1_ZR
+  AUCS_2$PR_ZR<-PR2_ZR
   AUCS<-rbind(AUCS_1,AUCS_2);
-  return(AUCS)
+#example output
+#     ROC   PRC model_names  testSet Trained in                 Algorithm
+#1  0.698 0.354       NT rf noh trib       Dmel             Random Forest
+#2  0.651 0.314       AA rf noh trib       Dmel             Random Forest
+  result<-list(AUCS , finaldmel[[2]] ,   finaltrib[[2]] )
+  names(result)<-c("AUCs",paste0("Model ",set1.modelname),paste0("Model ",set2.modelname))
+  return( result )
+
 }

@@ -7,11 +7,12 @@
 #' @param CPU Number of threads to use. Each sequence will use one thread (2). 
 #' @param LAMBDA Pseudo amino acid composition parameter. Sequences with less amino acids than LAMBDA will be removed (50). 
 #' @param OMEGA Pseudo amino acid composition parameter (0.05). 
-#' @param subcel use DeepLoc1.0 to predict probabilities for subcellular localization (F)
+#' @param subcel use DeepLoc1.0 to predict probabilities for subcellular localization, it is too slow to calculate in this way, we suggest the calculation being made externally [F]
+#' @param remove_x When there is a stop-codon suppression Flybase uses an X in its place, as we do not know which aminoacid is supposed to be there, we remove these X aminoacids to avoid losing otherwise important information. It is only meaningful when using a protein file, as the internal translation, which is simple in the 3 + frames, does not predict Stop codon readthrough [TRUE]
 #' @return A data frame of features
 #' @export
 
-Extract<-function(FASTA_PATH="",AAfile="",PFAM_path="",LAMBDA=50,OMEGA=0.05,CPU=2,nuc_only=F,varGibbs_Model_path="/mnt/DATABASES/bin/VarGibbs-2.2/data/AOP-CMB.par", subcel=F){
+Extract<-function(FASTA_PATH="",AAfile="",PFAM_path="",LAMBDA=50,OMEGA=0.05,CPU=2,nuc_only=F,varGibbs_Model_path="/mnt/DATABASES/bin/VarGibbs-2.2/data/AOP-CMB.par", subcel=F, remove_x=T){
 	#HMMSCAN and PFAM are needed in Calc_feats
 	#If sequence length is less than LAMBDA, then it will be skipped; 
 	SEQS<-seqinr::read.fasta(FASTA_PATH)
@@ -20,7 +21,7 @@ Extract<-function(FASTA_PATH="",AAfile="",PFAM_path="",LAMBDA=50,OMEGA=0.05,CPU=
 			on.exit(parallel::stopCluster(cl))
 	#the parallel is importing global variables that are not being used by the loop. tried a lot of things, and still no success. 
 			features_list<-parallel::parLapply(cl,SEQS,function(SEQ){ 
-							Calc_feats(SEQ,PFAM_PATH=PFAM_path,LAMBDA=LAMBDA,OMEGA=OMEGA,nuc_only=nuc_only,varGibbs_Model_PATH=varGibbs_Model_path, subcel=subcel)})
+							Calc_feats(SEQ,PFAM_PATH=PFAM_path,LAMBDA=LAMBDA,OMEGA=OMEGA,nuc_only=nuc_only,varGibbs_Model_PATH=varGibbs_Model_path, subcel=subcel, remove_X=remove_x)})
 			Features<-as.data.frame(data.table::rbindlist(features_list),fill=T,idcol=F)
 			rm(features_list)
 	}else{
