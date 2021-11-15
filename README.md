@@ -20,21 +20,7 @@ Will train in the First set and test in the Second, then train in Second and tes
 
 The dataframe of both set1 and set2 must have the same number of features (columns).
 
-
-To reproduce the procariote results:
-```
-reproduce_bacteria_results(CPU=10) 
-``` 
-This will take about 4 hours to end. This does the complete process, from the extraction of features, training and testing to plotting the results from the procariote data. 
-
-To reproduce Drosophila melanogaster and Tribolium castaneum results:
-```
-reproduce_insects_results(CPU=10) 
-```
-This will reproduce the insects results using the features already extracted and present in this package.  
-
-
-
-
+The script with commands used to generate the results with the insects is in:
+inst/extdata/dmel_trib_experiments.R
 
 
