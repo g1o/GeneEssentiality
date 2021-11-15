@@ -22,5 +22,5 @@ The dataframe of both set1 and set2 must have the same number of features (colum
 
 The script with commands used to generate the results with the insects is in:
 inst/extdata/dmel_trib_experiments.R
-
+The longest CDS and protein for each gene from both D. melanogaster and T. castaneum are in the dir (dmel_trib_experiments.R).  
 
