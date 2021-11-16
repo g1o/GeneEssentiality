@@ -364,161 +364,141 @@ function(experiment4_classifiers_and_extrinsic) {
 
 
 
-function(experimentos5){
-
+experiment5_extrinsic_add<-function(CPU=5){
+  library(caret)
+  THREADS=CPU;
+  IMPORTANCE=12;
+    imp<-c(importance_united$importance$Overall>IMPORTANCE,TRUE);
+  name1<-paste0(IMPORTANCE,"_Dmel");
+  name2<-paste0(IMPORTANCE,"_Trib");
+  set1_rna<-drosophila_features_nzv[,c(imp,rep(T,13))];
+  set2_rna<-tribolium_features_nzv[,c(imp,rep(T,13))];
+  experimento_5_models<-list();
+  experimento_5_models$dmel<-list();
+  experimento_5_models$trib<-list();
+  
+  
+  noh_dmel_ids <-read.csv(system.file("extdata", "noh_dmel_ids.csv", package="GeneEssentiality"),row.names = 1)
+  noh_trib_ids <-read.csv(system.file("extdata", "noh_trib_ids.csv", package="GeneEssentiality"),row.names = 1)
+  noh_trib_features <- tribolium_features_nzv[  ( rownames(tribolium_features_nzv ) %in% noh_trib_ids[,1] ) , ]
+  noh_dmel_features <- drosophila_features_nzv[ ( rownames(drosophila_features_nzv) %in% noh_dmel_ids[,1] ) , ]
+  
+  
 	mtries<-round(sqrt(length(set1_rna)))
 		mtries<-c( mtries, mtries*2)
 		control <- trainControl(method = "repeatedcv", number = 10, repeats = 3,
 				classProbs = TRUE, summaryFunction = twoClassSummary,
-				savePredictions = "final", seeds = seed, preProcOptions = NULL, allowParallel=F)
-## training this way generates much more compact models when saving (24MB to 2,7MB)
+				savePredictions = "final", seeds = seed, preProcOptions = NULL, allowParallel=F);
+		rf_tests<-list();
+## training this way generates much more compact models when saving (24MB to 2,7MB), for some reason using doparallel reduce compression power
 		features <- set1_rna[,1:632]
-		rf_tests[["dmel_adult"]]<-train(Class ~ .,data=features, metric="ROC",method="ranger",
+		experimento_5_models$dmel$dmel_adult<-train(Class ~ .,data=features, metric="ROC",method="ranger",
 				tuneGrid=expand.grid(.mtry=mtries , .splitrule="gini",.min.node.size=1),
-				trControl=control,num.trees= 1000,num.threads=5,importance = 'impurity')
+				trControl=control,num.trees= 1000,num.threads=THREADS,importance = 'impurity')
 		features <- set2_rna[,1:632]
-		rf_tests[["trib_adult"]]<-train(Class ~ .,data=features, metric="ROC",method="ranger",
+		experimento_5_models$trib$trib_adult<-train(Class ~ .,data=features, metric="ROC",method="ranger",
 				tuneGrid=expand.grid(.mtry=mtries , .splitrule="gini",.min.node.size=1),
-				trControl=control,num.trees= 1000,num.threads=5,importance = 'impurity')
-#only larva
-		features <- set1_rna[,c(1:631,633)]
-		rf_tests[["dmel_larva"]]<-train(Class ~ .,data=features, metric="ROC",method="ranger",
-				tuneGrid=expand.grid(.mtry=mtries , .splitrule="gini",.min.node.size=1),
-				trControl=control,num.trees= 1000,num.threads=5,importance = 'impurity')
-		features <- set2_rna[,c(1:631,633)]
-		rf_tests[["trib_larva"]]<-train(Class ~ .,data=features, metric="ROC",method="ranger",
-				tuneGrid=expand.grid(.mtry=mtries , .splitrule="gini",.min.node.size=1),
-				trControl=control,num.trees= 1000,num.threads=5,importance = 'impurity')
+				trControl=control,num.trees= 1000,num.threads=THREADS,importance = 'impurity')
 
 #only larva
 		features <- set1_rna[,c(1:631,633)]
-		rf_tests[["dmel_larva"]]<-train(Class ~ .,data=features, metric="ROC",method="ranger",
+		experimento_5_models$dmel$dmel_larva <-train(Class ~ .,data=features, metric="ROC",method="ranger",
 				tuneGrid=expand.grid(.mtry=mtries , .splitrule="gini",.min.node.size=1),
-				trControl=control,num.trees= 1000,num.threads=5,importance = 'impurity')
+				trControl=control,num.trees= 1000,num.threads=THREADS,importance = 'impurity')
 		features <- set2_rna[,c(1:631,633)]
-		rf_tests[["trib_larva"]]<-train(Class ~ .,data=features, metric="ROC",method="ranger",
+		experimento_5_models$trib$trib_larva <-train(Class ~ .,data=features, metric="ROC",method="ranger",
 				tuneGrid=expand.grid(.mtry=mtries , .splitrule="gini",.min.node.size=1),
-				trControl=control,num.trees= 1000,num.threads=5,importance = 'impurity')
+				trControl=control,num.trees= 1000,num.threads=THREADS,importance = 'impurity')
 #only subcell
 		features <- set1_rna[,c(1:631)]
-		rf_tests[["dmel_subcel"]]<-train(Class ~ .,data=features, metric="ROC",method="ranger",
+		experimento_5_models$dmel$dmel_subcel<-train(Class ~ .,data=features, metric="ROC",method="ranger",
 				tuneGrid=expand.grid(.mtry=mtries , .splitrule="gini",.min.node.size=1),
-				trControl=control,num.trees= 1000,num.threads=5,importance = 'impurity')
+				trControl=control,num.trees= 1000,num.threads=THREADS,importance = 'impurity')
 		features <- set2_rna[,c(1:631)]
-		rf_tests[["trib_subcel"]]<-train(Class ~ .,data=features, metric="ROC",method="ranger",
+		experimento_5_models$trib$trib_subcel <-train(Class ~ .,data=features, metric="ROC",method="ranger",
 				tuneGrid=expand.grid(.mtry=mtries , .splitrule="gini",.min.node.size=1),
-				trControl=control,num.trees= 1000,num.threads=5,importance = 'impurity')
+				trControl=control,num.trees= 1000,num.threads=THREADS,importance = 'impurity')
 #both
 		features <- set1_rna
-		rf_tests[["dmel_2rnaseq"]]<-train(Class ~ .,data=features, metric="ROC",method="ranger",
+		experimento_5_models$dmel$dmel_2rnaseq<-train(Class ~ .,data=features, metric="ROC",method="ranger",
 				tuneGrid=expand.grid(.mtry=mtries , .splitrule="gini",.min.node.size=1),
-				trControl=control,num.trees= 1000,num.threads=5,importance = 'impurity')
+				trControl=control,num.trees= 1000,num.threads=THREADS,importance = 'impurity')
 		features <- set2_rna
-		rf_tests[["trib_2rnaseq"]]<-train(Class ~ .,data=features, metric="ROC",method="ranger",
+		experimento_5_models$trib$trib_2rnaseq <-train(Class ~ .,data=features, metric="ROC",method="ranger",
 				tuneGrid=expand.grid(.mtry=mtries , .splitrule="gini",.min.node.size=1),
-				trControl=control,num.trees= 1000,num.threads=5,importance = 'impurity')
-
+				trControl=control,num.trees= 1000,num.threads=THREADS,importance = 'impurity')
+		
+		features <-drosophila_features_nzv[,c(imp,rep(F,13))];
+		experimento_5_models$dmel$intrinsic_Dmel <-train(Class ~ .,data=features, metric="ROC",method="ranger",
+		                                                   tuneGrid=expand.grid(.mtry=mtries , .splitrule="gini",.min.node.size=1),
+		                                                   trControl=control,num.trees= 1000,num.threads=THREADS,importance = 'impurity')
+		features <-tribolium_features_nzv[,c(imp,rep(F,13))];
+		experimento_5_models$trib$intrinsic_Trib <-train(Class ~ .,data=features, metric="ROC",method="ranger",
+		                                                   tuneGrid=expand.grid(.mtry=mtries , .splitrule="gini",.min.node.size=1),
+		                                                   trControl=control,num.trees= 1000,num.threads=THREADS,importance = 'impurity')
 
 		experimento_5_models$dmel<- c(models_norna[grep ("rf_norna_12_Dmel",names(models_norna) )] , models_rna[grep ("rf_rna_12_Dmel",names(models_rna) )] , rf_tests[grep ("dmel",names(rf_tests))])
 		experimento_5_models$trib<- c(models_norna[grep ("rf_norna_12_Trib",names(models_norna) )] , models_rna[grep ("rf_rna_12_Trib",names(models_rna) )] , rf_tests[grep ("trib",names(rf_tests))])
-
-		experimento5 <- VS_models_plot(set1_model= experimento_5_models$dmel , set2_model= experimento_5_models$trib , set2_data= tribolium_features ,set1_data= drosophila_features , set1.dataname= "Dmel", set2.dataname="Trib", set1.modelname="Dmel", set2.modelname="Trib", file_prefix="experimento5_",test_vs_ZR=F )
-		experimento5[[1]]$Features<-c("Intrinsic (I)", "I + S + Adult+Larva", "I + S + Adult","I + S + Larva","I + Subcellular (S)")
-
+		
+		
+		experimento5 <- VS_models_plot(set1_model= experimento_5_models$dmel , set2_model= experimento_5_models$trib ,
+		                               set2_data= tribolium_features_nzv ,set1_data= drosophila_features_nzv ,
+		                               set1.dataname= "Dmel", set2.dataname="Trib", set1.modelname="Dmel", set2.modelname="Trib", file_prefix="experimento5_",test_vs_ZR=F )
+		experimento5[[1]]$Features<-c( "I + S + Adult", "I + S + Larva","I + Subcellular (S)","I + S + Adult+Larva","Intrinsic (I)")
+		
 		experimento5_noh <- VS_models_plot(set1_model= experimento_5_models$dmel , set2_model= experimento_5_models$trib , set2_data= noh_trib_features ,set1_data= noh_dmel_features , set1.dataname= "NOH Dmel", set2.dataname="NOH Trib", set1.modelname="Dmel", set2.modelname="Trib", file_prefix="experimento5_noh_",test_vs_ZR=F )
-
-
+		experimento5_noh[[1]]$Features<-c( "I + S + Adult", "I + S + Larva","I + Subcellular (S)","I + S + Adult+Larva","Intrinsic (I)")
+		
+		
 		p1 <-ggplot(experimento5[[1]] ,aes(x= Features , y=ROC, col= `Trained in`  )) + geom_point(size=4, position=position_dodge(width=0.5)) +
-		ylab(label="AUC-ROC") +
-		ggtitle("ROC- AA vs NT: Complete") +
-		scale_y_continuous(limits=c(0.5,0.8)) +
-		scale_colour_grey() +  theme_classic() +
-		theme(axis.text.x = element_text(angle = 35, vjust = 1, hjust=1))
+		  ylab(label="AUC-ROC") +
+		  ggtitle("ROC- Extrinsic addition: Complete") +
+		  scale_y_continuous(limits=c(0.5,0.8)) +
+		  scale_x_discrete(limits= c("Intrinsic (I)", "I + Subcellular (S)", "I + S + Larva", "I + S + Adult", "I + S + Adult+Larva")) +
+		  scale_colour_grey() +  theme_classic() +
+		  theme(axis.text.x = element_text(angle = 35, vjust = 1, hjust=1))
 		p2 <-ggplot(experimento5[[1]] ,aes(x= Features , y=PRC, col= `Trained in`  )) + geom_point(size=4, position=position_dodge(width=0.5)) +
-		ggtitle("PR- AA vs NT: Complete") +
-		geom_hline ( aes( yintercept =PR_ZR, col=`Trained in`) , linetype=2 ) +
-		ylab(label="AUC-PRC ") + scale_colour_grey() +  theme_classic() +
-		theme(axis.text.x = element_text(angle = 35, vjust = 1, hjust=1))
+		  ggtitle("PR- Extrinsic addition: Complete") +
+		  geom_hline ( aes( yintercept =PR_ZR, col=`Trained in`) , linetype=2 ) +
+		  scale_x_discrete(limits= c("Intrinsic (I)", "I + Subcellular (S)", "I + S + Larva", "I + S + Adult", "I + S + Adult+Larva")) +
+		  ylab(label="AUC-PRC ") + scale_colour_grey() +  theme_classic() +
+		  theme(axis.text.x = element_text(angle = 35, vjust = 1, hjust=1))
 		legend <- cowplot::get_legend(
-				p1 + guides(color = guide_legend(nrow = 1)) +
-				theme(legend.position = "bottom")
-				)
+		  p1 + guides(color = guide_legend(nrow = 1)) +
+		    theme(legend.position = "bottom")
+		)
 		prow<-cowplot::plot_grid(p1+ theme(legend.position="none"),
-				p2+ theme(legend.position="none"),
-				labels = c('A', 'B'),
-				label_size = 12,
-				align = 'vh',  hjust = -1 , nrow=1 )
-		pab<-cowplot::plot_grid(prow, legend, rel_heights = c(1, .1)  , ncol =1 )
-		svg("teste_uma_duas_rna_seq.svg")
-		pab
+		                         p2+ theme(legend.position="none"),
+		                         labels = c('A', 'B'),
+		                         label_size = 12,
+		                         align = 'vh',  hjust = -1 , nrow=1 )
+		p1 <-ggplot(experimento5_noh[[1]] ,aes(x= Features , y=ROC, col= `Trained in`  )) + geom_point(size=4, position=position_dodge(width=0.5)) +
+		  ylab(label="AUC-ROC") +
+		  ggtitle("ROC- Extrinsic addition: NOH") +
+		  scale_y_continuous(limits=c(0.5,0.8)) +
+		  scale_x_discrete(limits= c("Intrinsic (I)", "I + Subcellular (S)", "I + S + Larva", "I + S + Adult", "I + S + Adult+Larva") )+
+		  scale_colour_grey() +  theme_classic() +
+		  theme(axis.text.x = element_text(angle = 35, vjust = 1, hjust=1))
+		p2 <-ggplot(experimento5_noh[[1]] ,aes(x= Features , y=PRC, col= `Trained in`  )) + geom_point(size=4, position=position_dodge(width=0.5)) +
+		  ggtitle("PR- Extrinsic addition: NOH") +
+		  geom_hline ( aes( yintercept =PR_ZR, col=`Trained in`) , linetype=2 ) +
+		  scale_x_discrete(limits= c("Intrinsic (I)", "I + Subcellular (S)", "I + S + Larva", "I + S + Adult", "I + S + Adult+Larva") )+
+		  ylab(label="AUC-PRC ") + scale_colour_grey() +  theme_classic() +
+		  theme(axis.text.x = element_text(angle = 35, vjust = 1, hjust=1))
+		#legend <- cowplot::get_legend(
+		  #p1 + guides(color = guide_legend(nrow = 1)) +
+		    #theme(legend.position = "bottom")
+		#)
+		prow2<-cowplot::plot_grid(p1+ theme(legend.position="none"),
+		                         p2+ theme(legend.position="none"),
+		                         labels = c('C', 'D'),
+		                         label_size = 12,
+		                         align = 'vh',  hjust = -1 , nrow=1)
+		
+		svg("Comparacao_rnaseq.svg",width=8,height = 9)
+		cowplot::plot_grid(prow,legend,prow2, rel_heights = c(1, .1, 1)  , ncol =1 )
+		
 		dev.off()
+		
 }
-
-
-
-############ and SVM 
-#SVM_seeds
-
-setSeeds <- function(method = "repeatedcv", numbers = 1, repeats = 1, tunes = NULL, seed = 1237) {
-  #B is the number of resamples and integer vector of M (numbers + tune length if any)
-  B <- if (method == "cv") numbers
-  else if(method == "repeatedcv") numbers * repeats
-  else NULL
-
-  if(is.null(length)) {
-    seeds <- NULL
-  } else {
-    set.seed(seed = seed)
-    seeds <- vector(mode = "list", length = B)
-    seeds <- lapply(seeds, function(x) sample.int(n = 1000000, size = numbers + ifelse(is.null(tunes), 0, tunes)))
-    seeds[[length(seeds) + 1]] <- sample.int(n = 1000000, size = 1)
-  }
-  # return seeds
-  seeds
-}
-
-
-
-
-
-#gives the full vector for the selected features
-b<-(colnames(drosophila_features) %in% colnames(models_norna$rf_norna_o13_Dmel$trainingData)) 
-# now use with & c(rep(n,F),rep(m,T),rep(z,F)) to check how many of a attribute class there is left
-
-sum(b & c(rep(T,5094),rep(F , ncol(tribolium_features)-5093 ) ) ) # check how many nt survived
-sum(b & c(rep(F,5093),rep(T , ncol(tribolium_features)-5093 ) ) ) # check how many aa survived
-
-
-##   ##
-VS_models_plot(set1_model=  c(models_norna[c("rf_norna_o13_Dmel","xgbt_norna_o13_Dmel")],models_rna[c("rf_13_Dmel","xgbt_13_Dmel")]) ,set2_model=  c(models_norna[c("rf_norna_o13_Trib","xgbt_norna_o13_Trib")],models_rna[c("rf_13_Trib","xgbt_13_Trib")] ) , set2_data= tribolium_features2 ,set1_data= drosophila_features2 , set1.dataname= "Dmel", set2.dataname="Trib", set1.modelname="Dmel_13", set2.modelname="Trib_13", file_prefix="RNA_13_" )
-VS_models_plot(set1_model=  c(models_norna[c("rf_norna_o13_Dmel","xgbt_norna_o13_Dmel")],models_rna[c("rf_13_Dmel","xgbt_13_Dmel")]) ,set2_model=  c(models_norna[c("rf_norna_o13_Trib","xgbt_norna_o13_Trib")],models_rna[c("rf_13_Trib","xgbt_13_Trib")] ) , set2_data= tribolium_features2 ,set1_data= drosophila_features2 , set1.dataname= "Dmel", set2.dataname="Trib", set1.modelname="Dmel_13", set2.modelname="Trib_13", file_prefix="RNA_13_",test_vs_ZR=F )
-
-VS_models_plot(set1_model=  c(models_norna[c("rf_norna_o13_Dmel","xgbt_norna_o13_Dmel")],models_rna[c("rf_13_Dmel","xgbt_13_Dmel")]) ,set2_model=  c(models_norna[c("rf_norna_o13_Trib","xgbt_norna_o13_Trib")],models_rna[c("rf_13_Trib","xgbt_13_Trib")] ) , set2_data= noh_trib_features ,set1_data= noh_dmel_features , set1.dataname= "Dmel", set2.dataname="Trib", set1.modelname="Dmel_13", set2.modelname="Trib_13", file_prefix="RNA_13_" )
-VS_models_plot(set1_model=  c(models_norna[c("rf_norna_o13_Dmel","xgbt_norna_o13_Dmel")],models_rna[c("rf_13_Dmel","xgbt_13_Dmel")]) ,set2_model=  c(models_norna[c("rf_norna_o13_Trib","xgbt_norna_o13_Trib")],models_rna[c("rf_13_Trib","xgbt_13_Trib")] ) , set2_data= noh_trib_features ,set1_data= noh_dmel_features , set1.dataname= "Dmel", set2.dataname="Trib", set1.modelname="Dmel_13", set2.modelname="Trib_13", file_prefix="RNA_13_",test_vs_ZR=F )
-
-
-## Campos et al 2019-2020 ##
-experimento_1_modelos <- c(Campos_models,models_norna["rf_norna_0_Dmel"]) 
-names(experimento_1_modelos)<-c("Cell-level","ES","DMEL")
-AUCS_campos<-VS_models_plot(set1_model=  experimento_1_modelos , set2_model= experimento_1_modelos  , set2_data= tribolium_features ,set1_data= noh_trib_features , set1.dataname= "noh trib", set2.dataname="trib", set1.modelname="Dmel", set2.modelname="Dmel", file_prefix= "campos_comparision_" ,test_vs_ZR=F)
-             VS_models_plot(set1_model=  experimento_1_modelos , set2_model= experimento_1_modelos , set2_data= tribolium_features ,set1_data= noh_trib_features , set1.dataname= "noh trib", set2.dataname="trib", set1.modelname="Dmel", set2.modelname="Dmel", file_prefix= "campos_comparisionzr_" ,test_vs_ZR=T)
-
-
-#invert RNA libs
- noh_dmel_features2<-noh_dmel_features
- noh_trib_features2<-noh_trib_features
- colnames(noh_dmel_features2)[c(15390:15391)] <-c ("rna2","rna1")
- colnames(noh_trib_features2)[c(15390:15391)] <-c ("rna2","rna1")
-
-tribolium_features3<- tribolium_features2
-drosophila_features3<- drosophila_features2
- colnames(tribolium_features3 )[c(15390:15391)] <-c ("rna2","rna1")
- colnames(drosophila_features3)[c(15390:15391)] <-c ("rna2","rna1")
-
-
-#VS_models_plot(set1_model=  c(models_norna[c("rf_norna_o13_Dmel","xgbt_norna_o13_Dmel")],models_rna[c("rf_13_Dmel","xgbt_13_Dmel")]) ,set2_model=  c(models_norna[c("rf_norna_o13_Trib","xgbt_norna_o13_Trib")],models_rna[c("rf_13_Trib","xgbt_13_Trib")] ) , set2_data= noh_trib_features2 ,set1_data= noh_dmel_features2 , set1.dataname= "Dmel", set2.dataname="Trib", set1.modelname="Dmel_13", set2.modelname="Trib_13", file_prefix="RNA_13_noh_inverted_rna" )
-VS_models_plot(set1_model=  c(models_norna[c("rf_norna_o13_Dmel","xgbt_norna_o13_Dmel")],models_rna[c("rf_13_Dmel","xgbt_13_Dmel")]) ,set2_model=  c(models_norna[c("rf_norna_o13_Trib","xgbt_norna_o13_Trib")],models_rna[c("rf_13_Trib","xgbt_13_Trib")] ) , set2_data= noh_trib_features2 ,set1_data= noh_dmel_features2 , set1.dataname= "noh dmel", set2.dataname="noh trib", set1.modelname="Dmel_13", set2.modelname="Trib_13", file_prefix="RNA_13_noh_inverted_rna",test_vs_ZR=F )
-
-#VS_models_plot(set1_model=  c(models_norna[c("rf_norna_o13_Dmel","xgbt_norna_o13_Dmel")],models_rna[c("rf_13_Dmel","xgbt_13_Dmel")]) ,set2_model=  c(models_norna[c("rf_norna_o13_Trib","xgbt_norna_o13_Trib")],models_rna[c("rf_13_Trib","xgbt_13_Trib")] ) , set2_data= tribolium_features2 ,set1_data= drosophila_features2 , set1.dataname= "Dmel", set2.dataname="Trib", set1.modelname="Dmel_13", set2.modelname="Trib_13", file_prefix="RNA_13_inverted_rna" )
-VS_models_plot(set1_model=  c(models_norna[c("rf_norna_o13_Dmel","xgbt_norna_o13_Dmel")],models_rna[c("rf_13_Dmel","xgbt_13_Dmel")]) ,set2_model=  c(models_norna[c("rf_norna_o13_Trib","xgbt_norna_o13_Trib")],models_rna[c("rf_13_Trib","xgbt_13_Trib")] ) , set2_data= tribolium_features3 ,set1_data= drosophila_features3 , set1.dataname= "Dmel", set2.dataname="Trib", set1.modelname="Dmel_13", set2.modelname="Trib_13", file_prefix="RNA_13_inverted_rna",test_vs_ZR=F )
 
