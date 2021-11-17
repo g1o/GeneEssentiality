@@ -168,78 +168,70 @@ function (experiment3_AA_vs_NT){
 
 }
 
-function(experiment4_classifiers_and_extrinsic) {
-#../../GeneEssentiality/data/SVM_seeds.rda
-	set1<-drosophila_features_nzv[,c(imp,rep(F,13))];
+experiment4_classifiers_and_extrinsic<-function(CPU=15) {
+
+  #CPU=15
+  library(caret)
+  THREADS=CPU
+  IMPORTANCE=12;
+  imp<-c(importance_united$importance$Overall>IMPORTANCE,TRUE);
+  set1<-drosophila_features_nzv[,c(imp,rep(F,13))];
 	set2<-tribolium_features_nzv[,c(imp,rep(F,13))];
-	IMPORTANCE=12;
-	imp<-c(importance_united$importance$Overall>IMPORTANCE,TRUE);
 	name1<-paste0(IMPORTANCE,"_Dmel");
 	name2<-paste0(IMPORTANCE,"_Trib");
 	set1_rna<-drosophila_features_nzv[,c(imp,rep(T,13))];
 	set2_rna<-tribolium_features_nzv[,c(imp,rep(T,13))];
-
-	control <- trainControl(method = "repeatedcv", number = 10, repeats = 3,
-			classProbs = TRUE, summaryFunction = twoClassSummary,
-			savePredictions = "final", seeds = SVM_seeds, preProcOptions = NULL);
-
+  noh_dmel_ids <-read.csv(system.file("extdata", "noh_dmel_ids.csv", package="GeneEssentiality"),row.names = 1)
+  noh_trib_ids <-read.csv(system.file("extdata", "noh_trib_ids.csv", package="GeneEssentiality"),row.names = 1)
+  noh_trib_features <- tribolium_features_nzv[  ( rownames(tribolium_features_nzv ) %in% noh_trib_ids[,1] ) , ]
+  noh_dmel_features <- drosophila_features_nzv[ ( rownames(drosophila_features_nzv) %in% noh_dmel_ids[,1] ) , ]
+  
+  if(!exists("models_norna")){
+    models_norna<-list()
+    models_norna[[paste0("rf_norna_",name1)]] <-(train_rf(features= set1 ,seeds=seed,nrepeats=3,CV=10,trees=1000,CPU=THREADS))[[1]] ;
+    models_norna[[paste0("rf_norna_",name2)]] <- (train_rf(features= set2 ,seeds=seed,nrepeats=3,CV=10,trees=1000,CPU=THREADS))[[1]] ;
+    models_norna[[paste0("xgbt_norna_",name1)]] <-(train_xgbt(features= set1  ,seeds=seed,nrepeats=3,CV=10,CPU=THREADS))[[1]] ; 
+    models_norna[[paste0("xgbt_norna_",name2)]] <- (train_xgbt(features= set2 ,seeds=seed,nrepeats=3,CV=10,CPU=THREADS))[[1]] ; 
+  }
+  
+  models_rna<-list() ;
+  models_rna[[paste0("rf_rna_",name1)]] <-(train_rf(features= set1_rna ,seeds=seed,nrepeats=3,CV=10,trees=1000,CPU=THREADS))[[1]];
+  models_rna[[paste0("rf_rna_",name2)]] <- (train_rf(features=set2_rna ,seeds=seed,nrepeats=3,CV=10,trees=1000,CPU=THREADS))[[1]];
+  models_rna[[paste0("xgbt_rna_",name1)]] <-(train_xgbt(features= set1_rna ,seeds=seed,nrepeats=3,CV=10,CPU=THREADS))[[1]];
+  models_rna[[paste0("xgbt_rna_",name2)]] <- (train_xgbt(features=set2_rna ,seeds=seed,nrepeats=3,CV=10,CPU=THREADS))[[1]];
+  control <- trainControl(method = "repeatedcv", number = 10, repeats = 3,
+                          classProbs = TRUE, summaryFunction = twoClassSummary,
+                          savePredictions = "final", seeds = SVM_seeds, preProcOptions = NULL);
+  
 	library(doParallel);
-	cl <- makeCluster(10, type = "FORK");
+	cl <- makeCluster(THREADS, type = "FORK");
 	registerDoParallel(cl);
 
-	#selected_models_norna$polynomial_norna_12_Trib
-
-
-
-	Dmel_svm_12 <- list();
-	Trib_svm_12 <- list();
-
-	selected_models_norna$radial_norna_12_Trib
-
-	Dmel_svm_12$radial_13 <- train(form = Class ~ ., data = set1, metric = "ROC", method = "ranger",
+  models_norna[[paste0("radial_norna_",name1)]]  <- train(form = Class ~ ., data = set1, metric = "ROC", method = "svmRadial",
 			trControl = control,
 			tuneGrid = expand.grid(
 				sigma = 2^c(-25,-20, -15 ),
 				C = 2^c(0, 0.5, 0.75, 1, 1.5)),
 			prox = T, allowParallel = TRUE, preProcess = c("center",  "scale"));
 
-	Dmel_svm_12$radial_13 <- train(form = Class ~ ., data = set1, metric = "ROC", method = "svmRadial",
+  models_norna[[paste0("radial_norna_",name2)]]  <- train(form = Class ~ ., data = set2, metric = "ROC", method = "svmRadial",
 			trControl = control,
 			tuneGrid = expand.grid(
 				sigma = 2^c(-25,-20, -15 ),
 				C = 2^c(0, 0.5, 0.75, 1, 1.5)),
 			prox = T, allowParallel = TRUE, preProcess = c("center",  "scale"));
 
-	Trib_svm_12$radial_13 <- train(form = Class ~ ., data = set2, metric = "ROC", method = "svmRadial",
-			trControl = control,
-			tuneGrid = expand.grid(
-				sigma = 2^c(-25,-20, -15 ),
-				C = 2^c(0, 0.5, 0.75, 1, 1.5)),
-			prox = T, allowParallel = TRUE, preProcess = c("center",  "scale"));
-
-
-	Dmel_svm_12$polynomial_13 <- train(form = Class ~ ., data = set1, metric = "ROC", method = "svmPoly",
+  models_norna[[paste0("polynomial_norna_",name1)]]  <- train(form = Class ~ ., data = set1, metric = "ROC", method = "svmPoly",
 			trControl = control, tuneGrid = expand.grid(degree = (2:4),
 				C = 2^c(0, 1,  2), scale = c(0.1,0.2)),
 			prox = T, allowParallel = TRUE, preProcess = c("center",      "scale"));
-	Trib_svm_12$polynomial_13 <- train(form = Class ~ ., data = set2, metric = "ROC", method = "svmPoly",
+
+  models_norna[[paste0("polynomial_norna_",name2)]] <- train(form = Class ~ ., data = set2, metric = "ROC", method = "svmPoly",
 			trControl = control, tuneGrid = expand.grid(degree = (2:4),
 				C = 2^c(0, 1,  2), scale = c(0.1, 0.2)),
 			prox = T, allowParallel = TRUE, preProcess = c("center",      "scale"));
 
-		stopCluster(cl)
-
-
-
-#after looking at the plot, over 12 was decided
-	models_rna<-list() ;
-	models_rna[[paste0("rf_rna_",name1)]] <-(train_rf(features= set1_rna ,seeds=seed,nrepeats=3,CV=10,trees=1000,CPU=5))[[1]];
-	models_rna[[paste0("rf_rna_",name2)]] <- (train_rf(features=set2_rna ,seeds=seed,nrepeats=3,CV=10,trees=1000,CPU=5))[[1]];
-	models_rna[[paste0("xgbt_rna_",name1)]] <-(train_xgbt(features= set1_rna ,seeds=seed,nrepeats=3,CV=10,CPU=5))[[1]];
-	models_rna[[paste0("xgbt_rna_",name2)]] <- (train_xgbt(features=set2_rna ,seeds=seed,nrepeats=3,CV=10,CPU=5))[[1]];
-
-
-#SVM seeds... doparralel and make cluster done
+  
 	models_rna[[paste0("radial_rna_",name1)]] <- train(form = Class ~ ., data = set1_rna, metric = "ROC", method = "svmRadial",
 			trControl = control,
 			tuneGrid = expand.grid(
@@ -265,6 +257,8 @@ function(experiment4_classifiers_and_extrinsic) {
 
 	stopCluster(cl);
 
+  
+  
 	RNA_AUCs<-list();
 	VS_models_plot(set1_model= c(models_rna[grep ("12_Dmel" ,names(models_rna))] ,
 				models_norna[grep ("12_Dmel" ,	names(models_norna))])  ,
