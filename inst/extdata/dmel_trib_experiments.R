@@ -13,16 +13,16 @@ noh_trib_features <- tribolium_features[  ( rownames(tribolium_features ) %in% n
 noh_dmel_features <- drosophila_features[ ( rownames(drosophila_features) %in% noh_dmel_ids[,1] ) , ]
 
 #### prepare data ### dmel load all genes ##
-function(Experiment_1_labels){
+Experiment_1_labels<-function(threads=5){
 ##this will plot results and return a list with the models and results from comparisons
 	ES_features   <- Extract(ES.fasta.gz , ES.faa.gz, LAMBDA=50) #likely wont work as too many sequences
 	Cell_features <- Extract(Cell_level.fasta.gz, Cell_level.faa.gz , LAMBDA=50) 
 ##nearZeroVar metrics (all_nzv) calculated after using the features from all longest CDS from both Drosophila melanogaster (6.32) and Tribolium castaneum genes (OGS3) 
 	ES_features   <-   ES_features[, c(!(all_nzv$percentUnique < 10 & all_nzv$freqRatio > 95/5)) ] 
 	Cell_features <- Cell_features[, c(!(all_nzv$percentUnique < 10 & all_nzv$freqRatio > 95/5)) ]   
-	Experiment_1$Cell_level <- (train_rf(features= Cell_features ,seeds=seed,nrepeats=3,CV=10,trees=1000,CPU=20))[[1]] ;
-	Experiment_1$ES         <- (train_rf(features= ES_features ,seeds=seed,nrepeats=3,CV=10,trees=1000,CPU=20))[[1]]
-	Experiment_1$DMEL       <- (train_rf(features= drosophila_features_nzv ,seeds=seed,nrepeats=3,CV=10,trees=1000,CPU=20))[[1]]
+	Experiment_1$Cell_level <- (train_rf(features= Cell_features ,seeds=seed,nrepeats=3,CV=10,trees=1000,CPU=threads))[[1]] ;
+	Experiment_1$ES         <- (train_rf(features= ES_features ,seeds=seed,nrepeats=3,CV=10,trees=1000,CPU=threads))[[1]]
+	Experiment_1$DMEL       <- (train_rf(features= drosophila_features_nzv ,seeds=seed,nrepeats=3,CV=10,trees=1000,CPU=threads))[[1]]
 
 	names(experimento_1_modelos)<-c("Cell-level","ES","DMEL")
 
@@ -31,8 +31,8 @@ function(Experiment_1_labels){
 	return(list(Experiment_1 , AUCS)) 
 }
 
-function(Experiment_2_feature_selection){
-	United_model_nzv0<-train_rf(features=rbind(drosophila_features_nzv[,1:8199],tribolium_features_nzv[,1:8199]),seeds=seed,nrepeats=3,CV=10,trees=1000,CPU=15);
+Experiment_2_feature_selection<-function(threads=5){
+	United_model_nzv0<-train_rf(features=rbind(drosophila_features_nzv[,1:8199],tribolium_features_nzv[,1:8199]),seeds=seed,nrepeats=3,CV=10,trees=1000,CPU=threads);
 	importance_united <- varImp(United_model_nzv0[[1]]) ;
 	models_norna<-list() ;
 	for(IMPORTANCE in c(0,5,10:20,25,30) ){
@@ -40,10 +40,10 @@ function(Experiment_2_feature_selection){
 		name1<-paste0(IMPORTANCE,"_Dmel") ;
 		name2<-paste0(IMPORTANCE,"_Trib") ;
 
-		models_norna[[paste0("rf_norna_",name1)]] <-(train_rf(features= drosophila_features_nzv[,c(imp,rep(F,13))],seeds=seed,nrepeats=3,CV=10,trees=1000,CPU=15))[[1]] ;
-		models_norna[[paste0("rf_norna_",name2)]] <- (train_rf(features= tribolium_features_nzv[,c(imp,rep(F,13))],seeds=seed,nrepeats=3,CV=10,trees=1000,CPU=15))[[1]] ;
-		models_norna[[paste0("xgbt_norna_",name1)]] <-(train_xgbt(features= drosophila_features_nzv[,c(imp,rep(F,13))],seeds=seed,nrepeats=3,CV=10,CPU=15))[[1]] ; 
-		models_norna[[paste0("xgbt_norna_",name2)]] <- (train_xgbt(features= tribolium_features_nzv[,c(imp,rep(F,13))],seeds=seed,nrepeats=3,CV=10,CPU=15))[[1]] ; 
+		models_norna[[paste0("rf_norna_",name1)]] <-(train_rf(features= drosophila_features_nzv[,c(imp,rep(F,13))],seeds=seed,nrepeats=3,CV=10,trees=1000,CPU=threads))[[1]] ;
+		models_norna[[paste0("rf_norna_",name2)]] <- (train_rf(features= tribolium_features_nzv[,c(imp,rep(F,13))],seeds=seed,nrepeats=3,CV=10,trees=1000,CPU=threads))[[1]] ;
+		models_norna[[paste0("xgbt_norna_",name1)]] <-(train_xgbt(features= drosophila_features_nzv[,c(imp,rep(F,13))],seeds=seed,nrepeats=3,CV=10,CPU=threads))[[1]] ; 
+		models_norna[[paste0("xgbt_norna_",name2)]] <- (train_xgbt(features= tribolium_features_nzv[,c(imp,rep(F,13))],seeds=seed,nrepeats=3,CV=10,CPU=threads))[[1]] ; 
 	}
 
 	AUCS_noRNA<-VS_models_plot (set1_model=  models_norna[grep("Dmel", names(models_norna))] ,
@@ -84,21 +84,21 @@ function(Experiment_2_feature_selection){
 
 }
 
-function (experiment3_AA_vs_NT){
+experiment3_AA_vs_NT<-function (threads=5){
 	tribolium_features_nzv_nt <- (tribolium_features_nzv[,c(rep(T,5093),rep(F,dim(tribolium_features_nzv)[2]-5093-14),T,rep(F,13))])
 	tribolium_features_nzv_aa <- (tribolium_features_nzv[,c(rep(F,5093),rep(T,dim(tribolium_features_nzv)[2]-5093-14),T,rep(F,13))])
 	drosophila_features_nzv_nt<-(drosophila_features_nzv[,c(rep(T,5093),rep(F,dim(tribolium_features_nzv)[2]-5093-14),T,rep(F,13))])
 	drosophila_features_nzv_aa<-(drosophila_features_nzv[,c(rep(F,5093),rep(T,dim(tribolium_features_nzv)[2]-5093-14),T,rep(F,13))])
 #models_campos_our_RF_noselection<-list(Campos2019_OGEEv2 = Campos2019_nzv$RF_model, Campos2020 = Campos2020_nzv$RF_model, Our =  models_norna$rf_norna_0_Dmel)
 	aa_nt_models<-list()
-	aa_nt_models[["rf_nt_dmel"]] <-(train_rf(features= drosophila_features_nzv_nt,seeds=seed,nrepeats=3,CV=10,trees=1000,CPU=15))[[1]]
-	aa_nt_models[["rf_aa_dmel"]] <-(train_rf(features= drosophila_features_nzv_aa,seeds=seed,nrepeats=3,CV=10,trees=1000,CPU=15))[[1]]
-	aa_nt_models[["rf_nt_trib"]] <- (train_rf(features= tribolium_features_nzv_nt,seeds=seed,nrepeats=3,CV=10,trees=1000,CPU=15))[[1]]
-	aa_nt_models[["rf_aa_trib"]] <- (train_rf(features= tribolium_features_nzv_aa,seeds=seed,nrepeats=3,CV=10,trees=1000,CPU=15))[[1]]
-	aa_nt_models[["xgbt_nt_dmel"]] <-(train_xgbt(features= drosophila_features_nzv_nt,seeds=seed,nrepeats=3,CV=10,CPU=15))[[1]]
-	aa_nt_models[["xgbt_aa_dmel"]] <-(train_xgbt(features= drosophila_features_nzv_aa,seeds=seed,nrepeats=3,CV=10,CPU=15))[[1]]
-	aa_nt_models[["xgbt_nt_trib"]] <- (train_xgbt(features= tribolium_features_nzv_nt,seeds=seed,nrepeats=3,CV=10,CPU=15))[[1]]
-	aa_nt_models[["xgbt_aa_trib"]] <- (train_xgbt(features= tribolium_features_nzv_aa,seeds=seed,nrepeats=3,CV=10,CPU=15))[[1]]
+	aa_nt_models[["rf_nt_dmel"]] <-(train_rf(features= drosophila_features_nzv_nt,seeds=seed,nrepeats=3,CV=10,trees=1000,CPU=threads))[[1]]
+	aa_nt_models[["rf_aa_dmel"]] <-(train_rf(features= drosophila_features_nzv_aa,seeds=seed,nrepeats=3,CV=10,trees=1000,CPU=threads))[[1]]
+	aa_nt_models[["rf_nt_trib"]] <- (train_rf(features= tribolium_features_nzv_nt,seeds=seed,nrepeats=3,CV=10,trees=1000,CPU=threads))[[1]]
+	aa_nt_models[["rf_aa_trib"]] <- (train_rf(features= tribolium_features_nzv_aa,seeds=seed,nrepeats=3,CV=10,trees=1000,CPU=threads))[[1]]
+	aa_nt_models[["xgbt_nt_dmel"]] <-(train_xgbt(features= drosophila_features_nzv_nt,seeds=seed,nrepeats=3,CV=10,CPU=threads))[[1]]
+	aa_nt_models[["xgbt_aa_dmel"]] <-(train_xgbt(features= drosophila_features_nzv_aa,seeds=seed,nrepeats=3,CV=10,CPU=threads))[[1]]
+	aa_nt_models[["xgbt_nt_trib"]] <- (train_xgbt(features= tribolium_features_nzv_nt,seeds=seed,nrepeats=3,CV=10,CPU=threads))[[1]]
+	aa_nt_models[["xgbt_aa_trib"]] <- (train_xgbt(features= tribolium_features_nzv_aa,seeds=seed,nrepeats=3,CV=10,CPU=threads))[[1]]
 
 ## AA and NT ## 
 	experimento_3_modelos<-list() ;
